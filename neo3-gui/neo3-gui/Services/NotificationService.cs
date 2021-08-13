@@ -25,19 +25,23 @@ namespace Neo.Services
         {
             while (_running)
             {
-                foreach (var job in _jobs)
-                {
-                    var now = DateTime.Now;
-                    if (job.NextTriggerTime <= now)
+                try {
+                    foreach (var job in _jobs)
                     {
-                        var msg = await job.Invoke();
-                        if (msg != null)
+                        var now = DateTime.Now;
+                        if (job.NextTriggerTime <= now)
                         {
-                            _hub.PushAll(msg);
-                        }
+                            var msg = await job.Invoke();
+                            if (msg != null)
+                            {
+                                _hub.PushAll(msg);
+                            }
 
-                        job.LastTriggerTime = now;
+                            job.LastTriggerTime = now;
+                        }
                     }
+                } catch { 
+                
                 }
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }

@@ -15,6 +15,7 @@ namespace Neo.Common.Consoles
         public StorageSettings Storage { get; }
         public P2PSettings P2P { get; }
         public UnlockWalletSettings UnlockWallet { get; }
+        public FsSettings Fs { get; }
         public string PluginURL { get; }
 
         static CliSettings _default;
@@ -25,8 +26,6 @@ namespace Neo.Common.Consoles
             settings.Protocol = ProtocolSettings.Load("config".GetEnvConfigPath());
             return null == Interlocked.CompareExchange(ref _default, settings, null);
         }
-
-
 
         public static CliSettings Default
         {
@@ -46,6 +45,7 @@ namespace Neo.Common.Consoles
             this.P2P = new P2PSettings(section.GetSection("P2P"));
             this.UnlockWallet = new UnlockWalletSettings(section.GetSection("UnlockWallet"));
             this.PluginURL = section.GetSection("PluginURL").Value;
+            this.Fs = new FsSettings(section.GetSection("Fs"));
         }
     }
 
@@ -110,4 +110,22 @@ namespace Neo.Common.Consoles
         }
     }
 
+    public class FsSettings
+    {
+        public string Host { get; }
+        public UInt160 FsContractHash { get; }
+        public string UploadPath { get; }
+        public string DownloadPath { get; }
+
+        public FsSettings(IConfigurationSection section)
+        {
+            if (section.Exists())
+            {
+                Host = section.GetValue("Host", "http://192.168.130.71:8080");
+                FsContractHash = UInt160.Parse(section.GetSection("FsContractHash").Value);
+                UploadPath = section.GetValue("UploadPath", @"./upload/");
+                DownloadPath = section.GetValue("DownloadPath", @"./downloadPath/");
+            }
+        }
+    }
 }

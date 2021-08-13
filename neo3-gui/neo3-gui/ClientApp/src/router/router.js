@@ -36,6 +36,7 @@ import Advancedsignature from '../components/Advanced/signature';
 import Advancedcommittee from '../components/Advanced/committee';
 import Advanceddesignrole from '../components/Advanced/designrole';
 import Advancednoderole from '../components/Advanced/noderole';
+import fs from '../components/Advanced/fs';
 
 import { Authenticated } from '../core/authentication';
 
@@ -91,6 +92,7 @@ const BasicRoute = () => (
                     <Route exact path="/advanced/committee" component={Authenticated(Advancedcommittee)} />
                     <Route exact path="/advanced/designrole" component={Advanceddesignrole} />
                     <Route exact path="/advanced/getnoderole" component={Advancednoderole} />
+                    <Route exact path="/advanced/fs" component={fs} />
                 </Layout>
             </Route>
             <Redirect from="*" to="/" />

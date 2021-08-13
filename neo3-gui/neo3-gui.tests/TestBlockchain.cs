@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Neo;
+using Neo.Common.Consoles;
 using Neo.Ledger;
 
 namespace neo3_gui.tests
@@ -15,11 +16,11 @@ namespace neo3_gui.tests
         static TestBlockchain()
         {
             Console.WriteLine("initialize NeoSystem");
-            TheNeoSystem = new NeoSystem();
+            TheNeoSystem = new NeoSystem(CliSettings.Default.Protocol);
 
             // Ensure that blockchain is loaded
 
-            var _ = Blockchain.Singleton;
+            //var _ = Blockchain.;
         }
 
         public static void InitializeMockNeoSystem()

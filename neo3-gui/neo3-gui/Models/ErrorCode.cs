@@ -68,5 +68,37 @@ namespace Neo.Models
         ValidatorAlreadyExist = 20030,
         [Description("No gas for claim.")]
         NoNeedClaimGas = 20031,
+        [Description("Create fs session fault.")]
+        CreateSessionFault = 20032,
+        [Description("Get fs object fault.")]
+        GetObjectFault = 20033,
+        [Description("Put fs storagegroup object fault.")]
+        PutStorageGroupObjectFault = 20034,
+        [Description("Get fs epoch fault.")]
+        GetEpochFault = 20035,
+        [Description("Get fs account balance fault.")]
+        GetBalanceFault = 20036,
+        [Description("Create fs client fault.")]
+        CreateClientFault = 20037,        
+        [Description("Get fs local node fault.")]
+        GetLocalNodeFault = 20038,
+        [Description("Get fs container fault.")]
+        GetContainerFault = 20039,
+        [Description("Get fs container list fault.")]
+        GetContainerListFault = 20040,
+        [Description("Put fs container fault.")]
+        PutContainerFault = 20041,
+        [Description("Delete fs container fault.")]
+        DeleteContainerFault = 20042,
+        [Description("Delete fs container list fault.")]
+        GetObjectListFault = 20043,
+        [Description("Get fs container eacl fault.")]
+        GetContainerEaclFault = 20044,
+        [Description("Upload file fault.")]
+        UploadFault = 20045,
+        [Description("Too much task.")]
+        TooMuchTask = 20046,
+        [Description("Download file fault.")]
+        DownloadFault = 20047,
     }
 }

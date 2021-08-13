@@ -55,6 +55,9 @@ class Advancedlayout extends React.Component {
               <Menu.Item key="5">
                 <Link to="/advanced/committee">{t("advanced.committee")}</Link>
               </Menu.Item>
+              <Menu.Item key="6">
+                <Link to="/advanced/fs">{t("fs.fs")}</Link>
+              </Menu.Item>
               {/* <Menu.Item key="6">
                 <Link to="/advanced/designrole">{t("指派节点角色")}</Link>
               </Menu.Item>
