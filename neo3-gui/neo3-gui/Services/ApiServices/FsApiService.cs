@@ -492,7 +492,7 @@ namespace Neo.Services.ApiServices
         ////relate file upload/download
         public async Task<object> OnUploadFile(int taskId, string containerId, string filePath, string timestamp, string paccount = null)
         {
-            if (TaskList.Count >= 5) return Error(ErrorCode.TooMuchTask);
+            if(TaskList.Select(p=>p.Value.Flag==0).Count()>5) return Error(ErrorCode.TooMuchTask);
             var err = CheckAndParseAccount(paccount, out UInt160 account, out ECDsa key);
             if (err is not null) return err;
             ContainerID cid = ParseContainerID(containerId, out var error);
@@ -532,7 +532,7 @@ namespace Neo.Services.ApiServices
 
         public async Task<object> OnDownloadFile(int taskId, string containerId, string objectId, string filePath, string paccount = null)
         {
-            if (TaskList.Count >= 5) return Error(ErrorCode.TooMuchTask);
+            if (TaskList.Select(p => p.Value.Flag == 0).Count() > 5) return Error(ErrorCode.TooMuchTask);
             var err = CheckAndParseAccount(paccount, out UInt160 account, out ECDsa key);
             if (err is not null) return err;
             ContainerID cid = ParseContainerID(containerId, out err);

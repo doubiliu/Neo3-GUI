@@ -4,22 +4,18 @@ import 'antd/dist/antd.css';
 import axios from 'axios';
 import {
     Input,
-    Checkbox,
     PageHeader,
     Modal,
     Alert,
     Row,
     Col,
-    Form,
     Tabs,
     Button,
     Card,
     Switch,
     Select,
     List,
-    Progress,
-    Tag,
-    message
+    Progress
 } from 'antd';
 import { Layout } from 'antd';
 import { Statistic } from 'antd';
@@ -27,11 +23,10 @@ import Sync from '../sync';
 import { observer, inject } from "mobx-react";
 import { withRouter } from "react-router-dom";
 import { withTranslation, Trans } from "react-i18next";
-import { WalletOutlined, RetweetOutlined, ForkOutlined, EditOutlined, AudioOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons';
+import { RetweetOutlined, EditOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import "../../static/css/advanced.css";
 import { Copy } from '../copy';
 import { remote } from "electron";
-import { size } from 'lodash';
 
 const { dialog } = remote;
 
@@ -56,7 +51,7 @@ class Fs extends React.Component {
             downloadpath: "",
             show: false,
             switch: false,
-            tableswitch:0,
+            tableswitch: 0,
             title: "fs",
             ppublickey: "",
             paccount: "",
@@ -82,8 +77,6 @@ class Fs extends React.Component {
             containerIds: [],
             objectIds: [],
             tasks: [],
-            runningtasks: [],
-            tasks2: [{ 'tasktype': 0, "taskId": 1, "current": 10, "total": 100, "flag": 0, "error": null, "containerId": "xxxxx", "objectId": "yyyyy", "filePath": "xxxxx" }, { 'tasktype': 0, "taskId": 1, "current": 0, "total": 0, "flag": -1, "error": "xxxxx", "cid": "xxxxx", "oid": "yyyyy", "filePath": "xxxxx" }],
         };
     }
 
@@ -135,6 +128,7 @@ class Fs extends React.Component {
 
     //relate account
     onAccountBalance() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnAccountBalance",
@@ -145,7 +139,7 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "查询余额失败");
+                    ModalError(_data, t("translation:advanced.fs.account-query-fault"));
                     return;
                 } else if (_data.msgType === 3) {
                     var _data = response.data.result;
@@ -159,6 +153,7 @@ class Fs extends React.Component {
     }
 
     onAccountDeposite() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnAccountDeposite",
@@ -170,10 +165,10 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "质押失败");
+                    ModalError(_data, t("translation:advanced.fs.account-deposit-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, "质押成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.account-deposit-success"));
                     return;
                 }
             })
@@ -183,6 +178,7 @@ class Fs extends React.Component {
     }
 
     onAccountWithdraw() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnAccountWithdraw",
@@ -194,10 +190,10 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "撤资失败");
+                    ModalError(_data, t("translation:advanced.fs.account-withdraw-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, "撤资成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.account-withdraw-success"));
                     return;
                 }
             })
@@ -208,6 +204,7 @@ class Fs extends React.Component {
 
     //relate container
     onGetContainer() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnGetContainer",
@@ -221,7 +218,7 @@ class Fs extends React.Component {
                 console.log("onGetContainer");
                 console.log(_data);
                 if (_data.msgType === -1) {
-                    ModalError(_data, "GetContainer失败");
+                    ModalError(_data, t("translation:advanced.fs.container-query-fault"));
                     return;
                 } else if (_data.msgType === 3) {
                     this.setState({ containerinfo: JSON.stringify(response.data.result) });
@@ -234,6 +231,7 @@ class Fs extends React.Component {
     }
 
     onListContainer = value => {
+        const { t } = this.props;
         this.state.paccount = value;
         axios.post('http://localhost:8081', {
             "id": "1",
@@ -247,7 +245,7 @@ class Fs extends React.Component {
                 if (_data.msgType === -1) {
                     this.state.containerIds = [];
                     this.setState({ containerIds: [] });
-                    ModalError(_data, "ListContainer失败");
+                    ModalError(_data, t("translation:advanced.fs.container-list-query-fault"));
                     return;
                 } else if (_data.msgType === 3) {
                     console.log(_data.result);
@@ -261,6 +259,7 @@ class Fs extends React.Component {
     }
 
     onPutContainer() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnPutContainer",
@@ -274,10 +273,10 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "PutContainer失败");
+                    ModalError(_data, t("translation:advanced.fs.container-put-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, "PutContainer成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.container-put-success"));
                     return;
                 }
             })
@@ -287,6 +286,7 @@ class Fs extends React.Component {
     }
 
     onDeleteContainer() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnDeleteContainer",
@@ -298,10 +298,10 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "DeleteContainer失败");
+                    ModalError(_data, t("translation:advanced.fs.container-delete-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, "DeleteContainer成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.container-delete-success"));
                     return;
                 }
             })
@@ -312,6 +312,7 @@ class Fs extends React.Component {
 
     //relate eacl
     onGetContainerEACL() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnGetContainerEACL",
@@ -322,10 +323,8 @@ class Fs extends React.Component {
         })
             .then((response) => {
                 var _data = response.data;
-                console.log("OnGetContainerEACL");
-                console.log(_data);
                 if (_data.msgType === -1) {
-                    ModalError(_data, "GetContainerEACL失败");
+                    ModalError(_data, t("translation:advanced.fs.eacl-query-fault"));
                     return;
                 } else if (_data.msgType === 3) {
                     var _data = response.data.result;
@@ -339,6 +338,7 @@ class Fs extends React.Component {
     }
 
     onSetContainerEACL() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnSetContainerEACL",
@@ -350,10 +350,10 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "SetContainerEACL失败");
+                    ModalError(_data, t("translation:advanced.fs.eacl-set-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, "SetContainerEACL成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.eacl-set-success"));
                     return;
                 }
             })
@@ -364,6 +364,7 @@ class Fs extends React.Component {
 
     //relate object
     OnGetObject() {
+        const { t } = this.props;
         this.setState({ object: "" }, () => {
             var objectIds = this.state.pobjectIds.split('_');
             for (var i = 0; i < objectIds.length; i++) {
@@ -379,7 +380,7 @@ class Fs extends React.Component {
                     .then((response) => {
                         var _data = response.data;
                         if (_data.msgType === -1) {
-                            ModalError(_data, "GetObject失败");
+                            ModalError(_data, t("translation:advanced.fs.object-query-fault"));
                             return;
                         } else if (_data.msgType === 3) {
                             var result = this.state.object;
@@ -396,6 +397,7 @@ class Fs extends React.Component {
     }
 
     onListObject() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnListObject",
@@ -407,7 +409,7 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "ListObject失败");
+                    ModalError(_data, t("translation:advanced.fs.object-list-query-fault"));
                     return;
                 } else if (_data.msgType === 3) {
                     console.log(_data.result);
@@ -421,6 +423,7 @@ class Fs extends React.Component {
     }
 
     onPutObject() {
+        const { t } = this.props;
         var flag = this.state.switch;
         axios.post('http://localhost:8081', flag ? {
             "id": "1",
@@ -442,10 +445,10 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, flag ? "PutObject失败" : "StorageGroupObject失败");
+                    ModalError(_data, flag ? t("translation:advanced.fs.object-put-fault") : t("translation:advanced.fs.object-storagegroup-put-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, flag ? "PutObject成功" : "StorageGroupObject成功");
+                    ModalSuccess(_data, flag ? t("translation:advanced.fs.object-put-success") : t("translation:advanced.fs.object-storagegroup-put-success"));
                     return;
                 }
             })
@@ -455,6 +458,7 @@ class Fs extends React.Component {
     }
 
     onDeleteObject() {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": "1",
             "method": "OnDeleteObject",
@@ -467,10 +471,10 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data;
                 if (_data.msgType === -1) {
-                    ModalError(_data, "DeleteObject失败");
+                    ModalError(_data, t("translation:advanced.fs.object-delete-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, "DeleteObject成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.object-delete-success"));
                     return;
                 }
             })
@@ -481,6 +485,7 @@ class Fs extends React.Component {
 
     //relate file
     onUploadFile = (taskId, timestamp) => {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": 1,
             "method": "OnUploadFile",
@@ -496,14 +501,10 @@ class Fs extends React.Component {
                 var _data = response.data;
                 console.log(_data);
                 if (_data.msgType === -1) {
-                    ModalError(_data, "UploadFile任务创建失败");
+                    ModalError(_data, t("translation:advanced.fs.bigfile-upload-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    if (taskId < 0) return;
-                    var tasks = this.state.runningtasks.slice();
-                    tasks.push(_data.result.taskId);
-                    this.setState({ runningtasks: tasks });
-                    ModalSuccess(_data, "UploadFile任务创建成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.bigfile-upload-success"));
                     return;
                 }
             })
@@ -513,6 +514,7 @@ class Fs extends React.Component {
     }
 
     onDownloadFile = (taskId, timestamp) => {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": 1,
             "method": "OnDownloadFile",
@@ -529,14 +531,10 @@ class Fs extends React.Component {
                 var _data = response.data;
                 console.log(_data);
                 if (_data.msgType === -1) {
-                    ModalError(_data, "DownloadFile任务创建失败");
+                    ModalError(_data, t("translation:advanced.fs.bigfile-download-fault"));
                     return;
                 } else if (_data.msgType === 3) {
-                    if (taskId < 0) return;
-                    var tasks = this.state.runningtasks.slice();
-                    tasks.push(_data.result.taskId);
-                    this.setState({ runningtasks: tasks });
-                    ModalSuccess(_data, "DownloadFile任务创建成功");
+                    ModalSuccess(_data, t("translation:advanced.fs.bigfile-download-success"));
                     return;
                 }
             })
@@ -547,6 +545,7 @@ class Fs extends React.Component {
 
 
     onGetProcess = () => {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "method": "OnGetProcess",
             "params": {
@@ -568,6 +567,7 @@ class Fs extends React.Component {
     }
 
     onGetSeedFile = (filePath) => {
+        const { t } = this.props;
         axios.post('http://localhost:8081', {
             "method": "OnGetFile",
             "params": {
@@ -580,7 +580,7 @@ class Fs extends React.Component {
                 if (_data.msgType === -1) {
                     return;
                 } else if (_data.msgType === 3) {
-                    var temp=_data.result.split("_");
+                    var temp = _data.result.split("_");
                     this.setState({
                         pcontainerId: temp[0],
                         objectIds: [temp[1]]
@@ -592,8 +592,6 @@ class Fs extends React.Component {
                 console.log(error);
             });
     }
-
-
 
     handelChange = (name, value) => {
         this.setState({
@@ -629,7 +627,8 @@ class Fs extends React.Component {
             containerinfo: "",
             eacl: "",
             object: "",
-            objectIds: []
+            objectIds: [],
+            containerIds: [],
         })
     }
 
@@ -694,8 +693,8 @@ class Fs extends React.Component {
         this.timerID = setInterval(
             () => {
                 if (this.state.tableswitch == 1) {
-                   this.onEpoch();
-                   this.onNodeInfo();
+                    this.onEpoch();
+                    this.onNodeInfo();
                 }
                 if (this.state.tableswitch == 6) {
                     this.onGetProcess();
@@ -718,33 +717,33 @@ class Fs extends React.Component {
                 <Content className="mt3">
                     <Row gutter={[30, 0]} style={{ 'minHeight': 'calc( 100vh - 120px )' }}>
                         <Col span={24} className="bg-white pv4">
-                            <PageHeader title={t('分布式文件存储服务')}></PageHeader>
+                            <PageHeader title={t('translation:advanced.fs.title')}></PageHeader>
                             <div className="pa3">
                                 <br />
                                 <Row>
                                     <Col span={12}>
-                                        <SelectAccount accounts={accounts} func={this.onListContainer.bind(this)} />
+                                        <SelectItem items={accounts.map(accounts => accounts.address)} placeholder={t("translation:advanced.fs.com-select-account")} func={this.onListContainer.bind(this)} />
                                     </Col>
                                     <Col span={1}>
                                     </Col>
                                     <Col span={11}>
-                                        <SelectItem items={this.state.containerIds} placeholder={"请选择账户持有的containerId"} func={this.handelChange.bind(this, "pcontainerId")} />
+                                        <SelectItem items={this.state.containerIds} placeholder={t("translation:advanced.fs.com-select-cid")} func={this.handelChange.bind(this, "pcontainerId")} />
                                     </Col>
                                 </Row>
                             </div>
                             <div className="pa3">
-                                <Tabs className="fs-title" defaultActiveKey="1" onChange={this.handelChange.bind(this,"tableswitch")}>
-                                    <TabPane tab={t("节点信息")} key="1">
+                                <Tabs className="fs-title" defaultActiveKey="1" onChange={this.handelChange.bind(this, "tableswitch")}>
+                                    <TabPane tab={t("translation:advanced.fs.node-title")} key="1">
                                         <Row>
                                             <Col span={24}>
-                                                <Card title="当前Epoch">
-                                                <p><Statistic value={this.state.epoch} prefix={<RetweetOutlined />} /></p>
+                                                <Card title={t("translation:advanced.fs.node-epoch")}>
+                                                    <p><Statistic value={this.state.epoch} prefix={<RetweetOutlined />} /></p>
                                                 </Card>
                                             </Col>
                                         </Row>
                                         <Row>
                                             <Col span={24}>
-                                                <Card title="节点状态" sytle={{ width: "100%" }}>
+                                                <Card title={t("translation:advanced.fs.node-nodeinfo")} sytle={{ width: "100%" }}>
                                                     <p>{"PublicKey:"}{this.state.nodeinfo.publicKey}</p>
                                                     <p>{"Addresses:"}{JSON.stringify(this.state.nodeinfo.addresses)}</p>
                                                     <p>{"State:"}{this.state.nodeinfo.state}</p>
@@ -752,10 +751,10 @@ class Fs extends React.Component {
                                             </Col>
                                         </Row>
                                     </TabPane>
-                                    <TabPane tab={t("账户相关")} key="2">
+                                    <TabPane tab={t("translation:advanced.fs.account-title")} key="2">
                                         <Search
-                                            placeholder="请输入公钥"
-                                            enterButton="Search"
+                                            placeholder={t("translation:advanced.fs.account-input-publickey")}
+                                            enterButton={t("translation:advanced.fs.com-btn-query")}
                                             size="large"
                                             value={this.state.ppublickey}
                                             onChange={this.handelChangeInput.bind(this, "ppublickey")}
@@ -763,25 +762,25 @@ class Fs extends React.Component {
                                             style={{ width: '50%' }}
                                         />
                                         <br />
-                                        <Statistic title="账户余额" value={this.state.balance.toString() + " gas"} prefix={<RetweetOutlined />} />
+                                        <Statistic title={"Balance:"} value={this.state.balance.toString() + " gas"} prefix={<RetweetOutlined />} />
                                         <br />
                                         <Search
-                                            placeholder="请输入gas数量"
-                                            enterButton="质押"
+                                            placeholder={t("translation:advanced.fs.account-input-gascount")}
+                                            enterButton={t("translation:advanced.fs.account-btn-deposit")}
                                             size="large"
                                             value={this.state.pbalance}
                                             onChange={this.handelChangeInput.bind(this, "pbalance")}
                                             onSearch={this.onAccountDeposite.bind(this)}
                                             style={{ width: '50%' }}
                                         />
-                                        <Button size="large" onClick={this.onAccountWithdraw.bind(this)}>撤资</Button>
+                                        <Button size="large" onClick={this.onAccountWithdraw.bind(this)}>{t("translation:advanced.fs.account-btn-withdraw")}</Button>
                                     </TabPane>
-                                    <TabPane tab={t("容器相关")} key="3">
+                                    <TabPane tab={t("translation:advanced.fs.container-title")} key="3">
                                         <Row>
                                             <Col span={12}>
                                                 <Search
-                                                    placeholder="请输入containerId"
-                                                    enterButton="Search"
+                                                    placeholder={t("translation:advanced.fs.com-input-cid")}
+                                                    enterButton={t("translation:advanced.fs.com-btn-query")}
                                                     size="large"
                                                     value={this.state.pcontainerId}
                                                     onChange={this.handelChangeInput.bind(this, "pcontainerId")}
@@ -790,8 +789,8 @@ class Fs extends React.Component {
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
-                                                <Button size="large" onClick={this.onPutContainer.bind(this)}>创建</Button>{" "}
-                                                <Button size="large" onClick={this.onDeleteContainer.bind(this)}>删除</Button>
+                                                <Button size="large" onClick={this.onPutContainer.bind(this)}>{t("translation:advanced.fs.com-btn-create")}</Button>{" "}
+                                                <Button size="large" onClick={this.onDeleteContainer.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button>
                                             </Col>
                                         </Row>
                                         <Row>
@@ -803,41 +802,41 @@ class Fs extends React.Component {
                                             <Col span={1}></Col>
                                             <Col span={11}>
                                                 <Row>
-                                                    <Input placeholder={"请输入Policy"} onChange={this.handelChangeInput.bind(this, "ppolicyString")} style={{ width: '100%' }} />
+                                                    <Input placeholder={t("translation:advanced.fs.container-input-policy")} onChange={this.handelChangeInput.bind(this, "ppolicyString")} style={{ width: '100%' }} />
                                                 </Row>
                                                 <br />
                                                 <Row>
-                                                    <Input placeholder={"请输入BasicAcl"} onChange={this.handelChangeInput.bind(this, "pbasicAcl")} style={{ width: '100%' }} />
+                                                    <Input placeholder={t("translation:advanced.fs.container-input-basicacl")} onChange={this.handelChangeInput.bind(this, "pbasicAcl")} style={{ width: '100%' }} />
                                                 </Row>
                                                 <br />
                                                 <Row>
-                                                    <Input placeholder={"请输入Attributes"} onChange={this.handelChangeInput.bind(this, "pattributesString")} style={{ width: '100%' }} />
+                                                    <Input placeholder={t("translation:advanced.fs.container-input-attributes")} onChange={this.handelChangeInput.bind(this, "pattributesString")} style={{ width: '100%' }} />
                                                 </Row>
                                                 <br />
                                             </Col>
                                         </Row>
                                     </TabPane>
-                                    <TabPane tab={t("EACL权限相关")} key="4">
+                                    <TabPane tab={t("translation:advanced.fs.eacl-title")} key="4">
                                         <Search
-                                            placeholder="请输入containerId"
-                                            enterButton="Search"
+                                            placeholder={t("translation:advanced.fs.com-input-cid")}
+                                            enterButton={t("translation:advanced.fs.com-btn-query")}
                                             size="large"
                                             value={this.state.pcontainerId}
                                             onChange={this.handelChangeInput.bind(this, "pcontainerId")}
                                             onSearch={this.onGetContainerEACL.bind(this)}
                                             style={{ width: '50%' }}
                                         />
-                                        <Button size="large" onClick={this.onSetContainerEACL.bind(this)}>设置</Button>
+                                        <Button size="large" onClick={this.onSetContainerEACL.bind(this)}>{t("translation:advanced.fs.eacl-btn-set")}</Button>
                                         <br />
                                         <br />
                                         <TextArea rows={4} placeholder={"container eacl info"} value={this.state.eacl.toString()} onChange={this.handelChangeInput.bind(this, "peacl")} prefix={<EditOutlined />} />
                                     </TabPane>
-                                    <TabPane tab={t("对象相关")} key="5">
+                                    <TabPane tab={t("translation:advanced.fs.object-title")} key="5">
                                         <Row>
                                             <Col span={12}>
                                                 <Search
-                                                    placeholder="请输入containerId"
-                                                    enterButton="获取objectId"
+                                                    placeholder={t("translation:advanced.fs.com-input-cid")}
+                                                    enterButton={t("translation:advanced.fs.com-btn-oid-query")}
                                                     size="large"
                                                     value={this.state.pcontainerId}
                                                     onChange={this.handelChangeInput.bind(this, "pcontainerId")}
@@ -846,18 +845,18 @@ class Fs extends React.Component {
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
-                                                <SelectItem items={this.state.objectIds} placeholder={"请选择objecctId"} func={this.handelChange.bind(this, "pobjectIds")} />
+                                                <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.handelChange.bind(this, "pobjectIds")} />
                                             </Col>
                                         </Row>
                                         <Row>
                                             <Col span={12}>
-                                                <TextArea rows={4} placeholder={"请输入object data,data 大小【1M,2M】"} onChange={this.handelChangeInput.bind(this, "pobjectdata")} prefix={<EditOutlined />} />
+                                                <TextArea rows={4} placeholder={"Please input object data,data size【1M,2M】"} onChange={this.handelChangeInput.bind(this, "pobjectdata")} prefix={<EditOutlined />} />
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
                                                 <Row>
-                                                    <Col span={7}><Button size="large" onClick={this.onPutObject.bind(this)}>创建</Button></Col>
-                                                    <Col span={7}><Button size="large" onClick={this.onDeleteObject.bind(this)}>删除</Button></Col>
+                                                    <Col span={7}><Button size="large" onClick={this.onPutObject.bind(this)}>{t("translation:advanced.fs.com-btn-create")}</Button></Col>
+                                                    <Col span={7}><Button size="large" onClick={this.onDeleteObject.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button></Col>
                                                     <Col span={7}><p>{"StorageGroup"}<Switch defaultChecked onChange={this.switchChange.bind(this, !this.state.switch)} /></p></Col>
                                                 </Row>
                                             </Col>
@@ -865,13 +864,13 @@ class Fs extends React.Component {
                                         <br />
                                         <Row>
                                             <Col span={12}>
-                                                <TextArea rows={4} placeholder={ "Object Info"} value={this.state.object.toString()}></TextArea>
+                                                <TextArea rows={4} placeholder={"Object Info"} value={this.state.object.toString()}></TextArea>
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
                                                 <Search
-                                                    placeholder="请输入objectId,允许多个用 _ 分割"
-                                                    enterButton="获取object"
+                                                    placeholder={t("translation:advanced.fs.object-input-objectId")}
+                                                    enterButton={t("translation:advanced.fs.com-btn-query")}
                                                     size="large"
                                                     value={this.state.pobjectIds}
                                                     onChange={this.handelChangeInput.bind(this, "pobjectIds")}
@@ -881,12 +880,12 @@ class Fs extends React.Component {
                                             </Col>
                                         </Row>
                                     </TabPane>
-                                    <TabPane tab={t("文件传输相关")} key="6">
+                                    <TabPane tab={t("translation:advanced.fs.bigfile-title")} key="6">
                                         <Row>
                                             <Col span={12}>
                                                 <Search
-                                                    placeholder="请输入containerId"
-                                                    enterButton="获取objectId"
+                                                    placeholder={t("translation:advanced.fs.com-input-cid")}
+                                                    enterButton={t("translation:advanced.fs.com-btn-oid-query")}
                                                     size="large"
                                                     value={this.state.pcontainerId}
                                                     onChange={this.handelChangeInput.bind(this, "pcontainerId")}
@@ -895,16 +894,16 @@ class Fs extends React.Component {
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
-                                                <SelectItem items={this.state.objectIds} placeholder={"请选择objecctId"} func={this.handelChange.bind(this, "pobjectId")} />
+                                                <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.handelChange.bind(this, "pobjectId")} />
                                             </Col>
                                         </Row>
                                         <Row>
                                             <Col span={12}>
-                                                <Input type="txt" placeholder={"请输入上传文件路径"} value={this.state.uploadpath} style={{ width: "45%" }} /><Button icon={<UploadOutlined />} onClick={this.selectFile.bind(this, 1)} style={{ width: "55%" }}>Select Upload File</Button>
+                                                <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-uploadloadpath")} value={this.state.uploadpath} style={{ width: "45%" }} /><Button icon={<UploadOutlined />} onClick={this.selectFile.bind(this, 1)} style={{ width: "55%" }}>Select Upload File</Button>
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
-                                                <Input type="txt" placeholder={"请输入种子文件路径"} value={this.state.downloadpath} style={{ width: "45%" }} /><Button icon={<DownloadOutlined />} onClick={this.selectFile.bind(this, -1)} style={{ width: "55%" }}>Select DownLoad Path</Button>
+                                                <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-downloadpath")} value={this.state.downloadpath} style={{ width: "45%" }} /><Button icon={<DownloadOutlined />} onClick={this.selectFile.bind(this, -1)} style={{ width: "55%" }}>Select DownLoad Seed</Button>
                                             </Col>
                                         </Row>
                                         <Row>
@@ -913,8 +912,8 @@ class Fs extends React.Component {
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={6}>
-                                                <Button shape="dashed" size="large" onClick={this.onUploadFile.bind(this, -1, new Date().getTime())} style={{ width: "50%" }}>上传</Button>
-                                                <Button shape="dashed" size="large" onClick={this.onDownloadFile.bind(this, -1, new Date().getTime())} style={{ width: "50%" }}>下载</Button>
+                                                <Button shape="dashed" size="large" onClick={this.onUploadFile.bind(this, -1, new Date().getTime())} style={{ width: "50%" }}>{t("translation:advanced.fs.bigfile-btn-upload")}</Button>
+                                                <Button shape="dashed" size="large" onClick={this.onDownloadFile.bind(this, -1, new Date().getTime())} style={{ width: "50%" }}>{t("translation:advanced.fs.bigfile-btn-download")}</Button>
                                             </Col>
                                         </Row>
                                     </TabPane>
@@ -956,7 +955,7 @@ const SelectItem = ({ items, placeholder, func }) => {
             size="large"
             style={{ width: '100%' }}
         >
-            {items.length > 0 ? items.map((item,index) => {
+            {items.length > 0 ? items.map((item, index) => {
                 return (
                     <Option className="add-list" key={item} value={item}> { item}</Option>
                 )
@@ -964,26 +963,8 @@ const SelectItem = ({ items, placeholder, func }) => {
         </Select>)
 }
 
-const SelectAccount = ({ accounts, func }) => {
-    return (
-        <Select
-            placeholder="请选择账户"
-            onSelect={func}
-            size="large"
-            className="multiadd"
-            style={{ width: '100%' }}>
-            {accounts.length > 0 ? accounts.map((item) => {
-                return (
-                    <Option className="add-list" key={item.address} value={item.address}>{item.address}</Option>
-                )
-            }) : null}
-        </Select>)
-}
-//tasks: [{ 'tasktype': 0, "taskId": 1, "current": 0, "total": 0, "flag": -1 ,"error":"xxxxx", "containerId":xxxxxx,"objectId":"yyyyy","filePath":"xxxxx"}],
-//<Progress percent={1.0 * item.current / item.total * 100} status="active" />
 const UploadDownloadTaskList = (data, func1, func2) => {
     var _data = data.data;
-    //console.log(_data);
     return (<List
         itemLayout="horizontal"
         dataSource={_data}
@@ -993,13 +974,13 @@ const UploadDownloadTaskList = (data, func1, func2) => {
                     <Row>
                         <Col span={10}>
                             <p>{item.tasktype == 1 ? <UploadOutlined size="large" /> : <DownloadOutlined size="large" />}{"TaskId:" + item.taskId}</p>
-                            <p>{"信息:"}</p>
-                            <p>{"文件名称:" + item.fileName}</p>
-                            <p>{"cid:" + item.containerId}<Copy msg={item.containerId} /></p>
-                            <p>{"oid:" + item.objectId}<Copy msg={item.objectId} /></p>
-                            <p>{"timestamp:" + item.timeStamp}</p>
-                            <p>{"完成度:" + item.current + "|" + item.total + "byte"}</p>
-                            <p>{"完成时间:" + item.finish}</p>
+                            <p>{"Info:"}</p>
+                            <p>{"FileName:" + item.fileName}</p>
+                            <p>{"Cid:" + item.containerId}<Copy msg={item.containerId} /></p>
+                            <p>{"Oid:" + item.objectId}<Copy msg={item.objectId} /></p>
+                            <p>{"TimeStamp:" + item.timeStamp}</p>
+                            <p>{"Process:" + item.current + "|" + item.total + "byte"}</p>
+                            <p>{"FinishTime:" + item.finish}</p>
                         </Col>
                         <Col span={9}>
                             <a hidden={item.error == null}><Alert type="error" message={"Error " + item.error} banner /></a>
@@ -1007,7 +988,7 @@ const UploadDownloadTaskList = (data, func1, func2) => {
                         <Col span={1}>
                         </Col>
                         <Col span={4}>
-                            <Button size="small" hidden={item.flag != -1} onClick={() => { item.tasktype == 1 ? func1(item.taskId, item.timeStamp) : func2(item.taskId, item.timeStamp) }}>{"重试"}</Button>
+                            <Button size="small" hidden={item.flag != -1} onClick={() => { item.tasktype == 1 ? func1(item.taskId, item.timeStamp) : func2(item.taskId, item.timeStamp) }}>{"Again"}</Button>
                         </Col>
                     </Row>
                     <Progress showInfo percent={(1.0 * item.current / item.total * 100).toFixed(2)} status={item.flag == 0 ? "active" : item.flag == 1 ? "success" : "exception"} style={{ width: '90%' }} />

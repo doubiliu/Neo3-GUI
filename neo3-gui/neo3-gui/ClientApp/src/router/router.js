@@ -92,7 +92,7 @@ const BasicRoute = () => (
                     <Route exact path="/advanced/committee" component={Authenticated(Advancedcommittee)} />
                     <Route exact path="/advanced/designrole" component={Advanceddesignrole} />
                     <Route exact path="/advanced/getnoderole" component={Advancednoderole} />
-                    <Route exact path="/advanced/fs" component={fs} />
+                    <Route exact path="/advanced/fs" component={Authenticated(fs)} />
                 </Layout>
             </Route>
             <Redirect from="*" to="/" />
