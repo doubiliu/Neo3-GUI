@@ -328,7 +328,7 @@ class Fs extends React.Component {
                     return;
                 } else if (_data.msgType === 3) {
                     var _data = response.data.result;
-                    this.setState({ peaclString: _data });
+                    this.setState({ eacl: _data });
                     return;
                 }
             })
@@ -829,7 +829,8 @@ class Fs extends React.Component {
                                         <Button size="large" onClick={this.onSetContainerEACL.bind(this)}>{t("translation:advanced.fs.eacl-btn-set")}</Button>
                                         <br />
                                         <br />
-                                        <TextArea rows={4} placeholder={"container eacl info"} value={this.state.peaclString.toString()} onChange={this.handelChangeInput.bind(this, "peaclString")} prefix={<EditOutlined />} />
+                                        <TextArea rows={4} placeholder={"Container Eacl Info:"} value={this.state.eacl.toString()} prefix={<EditOutlined />} />
+                                        <TextArea rows={4} placeholder={"Please input eacl"} onChange={this.handelChangeInput.bind(this, "peaclString")} prefix={<EditOutlined />} />
                                     </TabPane>
                                     <TabPane tab={t("translation:advanced.fs.object-title")} key="5">
                                         <Row>
@@ -946,11 +947,11 @@ const SelectItem = ({ items, placeholder, func }) => {
             className="multiadd"
             showSearch
             optionFilterProp="children"
-            filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            filterOption={(input, option) => 
+                option.props.children[1].toLowerCase().indexOf(input.toLowerCase()) >= 0  
             }
             filterSort={(optionA, optionB) =>
-                optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
+                optionA.children[1].toLowerCase().localeCompare(optionB.children[1].toLowerCase())
             }
             size="large"
             style={{ width: '100%' }}
