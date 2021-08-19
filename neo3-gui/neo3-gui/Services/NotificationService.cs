@@ -25,8 +25,9 @@ namespace Neo.Services
         {
             while (_running)
             {
-                try {
-                    foreach (var job in _jobs)
+                foreach (var job in _jobs)
+                {
+                    try
                     {
                         var now = DateTime.Now;
                         if (job.NextTriggerTime <= now)
@@ -36,12 +37,13 @@ namespace Neo.Services
                             {
                                 _hub.PushAll(msg);
                             }
-
                             job.LastTriggerTime = now;
                         }
                     }
-                } catch { 
-                
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Job Error[{job}]:{e}");
+                    }
                 }
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }

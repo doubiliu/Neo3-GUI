@@ -180,29 +180,29 @@ namespace Neo.Common.Storage
 
 
 
-        /// <summary>
-        /// update record will save after call <see cref="Commit"/> method;
-        /// new record will save immediately
-        /// </summary>
-        /// <param name="addressHash"></param>
-        /// <param name="assetInfo"></param>
-        /// <param name="balance"></param>
-        /// <param name="height"></param>
-        public void UpdateBalanceIndex(UInt160 addressHash, AssetInfo assetInfo, BigInteger balance, uint height)
-        {
-            if (addressHash == null) return;
-            var address = GetOrCreateAddress(addressHash);
-            var asset = GetActiveContract(assetInfo.Asset);
-            var balanceRecord = GetOrCreateBalance(address, asset, balance, height);
+        ///// <summary>
+        ///// update record will save after call <see cref="Commit"/> method;
+        ///// new record will save immediately
+        ///// </summary>
+        ///// <param name="addressHash"></param>
+        ///// <param name="assetInfo"></param>
+        ///// <param name="balance"></param>
+        ///// <param name="height"></param>
+        //public void UpdateBalanceIndex(UInt160 addressHash, AssetInfo assetInfo, BigInteger balance, uint height)
+        //{
+        //    if (addressHash == null) return;
+        //    var address = GetOrCreateAddress(addressHash);
+        //    var asset = GetActiveContract(assetInfo.Asset);
+        //    var balanceRecord = GetOrCreateBalance(address, asset, balance, height);
 
-            if (balanceRecord.BlockHeight >= height)
-            {
-                //no need update
-                return;
-            }
-            balanceRecord.Balance = balance.ToByteArray();
-            balanceRecord.BlockHeight = height;
-        }
+        //    if (balanceRecord.BlockHeight >= height)
+        //    {
+        //        //no need update
+        //        return;
+        //    }
+        //    balanceRecord.Balance = balance.ToByteArray();
+        //    balanceRecord.BlockHeight = height;
+        //}
 
 
         /// <summary>
@@ -213,6 +213,10 @@ namespace Neo.Common.Storage
         public PageList<TransactionInfo> QueryTransactions(TransactionFilter filter, bool includeTransfers = false)
         {
             IQueryable<TransactionEntity> query = _sqldb.Transactions;
+            if (includeTransfers)
+            {
+                query = query.Include(t => t.Transfers);
+            }
             if (filter.StartTime != null)
             {
                 query = query.Where(r => r.Time >= filter.StartTime.Value.ToUniversalTime());
@@ -253,7 +257,12 @@ namespace Neo.Common.Storage
             if (filter.Contracts.NotEmpty())
             {
                 var contracts = filter.Contracts.Select(a => a.ToBigEndianHex()).Distinct().ToList();
-                query = query.Where(tx => tx.InvokeContracts.Any(c => contracts.Contains(c.Contract.Hash) && c.Contract.DeleteOrMigrateTxId == null));
+                query = query.Where(tx => tx.InvokeContracts.Any(c => contracts.Contains(c.Contract.Hash) && c.Contract.DeleteTxId == null));
+            }
+            if (filter.Assets.NotEmpty())
+            {
+                var assets = filter.Assets.Select(a => a.ToBigEndianHex()).Distinct().ToList();
+                query = query.Where(tx => tx.Transfers.Any(c => assets.Contains(c.Asset.Hash) && c.Asset.DeleteTxId == null));
             }
             var pageList = new PageList<TransactionInfo>();
             var pageIndex = filter.PageIndex <= 0 ? 0 : filter.PageIndex - 1;
@@ -264,8 +273,38 @@ namespace Neo.Common.Storage
             {
                 var list = query.OrderByDescending(g => g.Time)
                     .Skip(pageIndex * filter.PageSize)
-                    .Take(filter.PageSize);
-                pageList.List.AddRange(includeTransfers ? list.Select(ToTransactionWithTransfer) : list.Select(ToTransactionWithoutTransfer));
+                    .Take(filter.PageSize).ToList();
+
+                foreach (var tx in list.ToList())
+                {
+                    var transaction = new TransactionInfo()
+                    {
+                        TxId = UInt256.Parse(tx.TxId),
+                        BlockHeight = tx.BlockHeight,
+                        Sender = tx.Sender != null ? UInt160.Parse(tx.Sender.Hash) : null,
+                        Time = tx.Time.AsUtcTime(),
+                    };
+                    if (tx.Transfers.NotEmpty())
+                    {
+                        var time = tx.Time.ToTimestampMS();
+                        var transfers = new List<TransferInfo>();
+                        foreach (var t in tx.Transfers)
+                        {
+                            transfers.Add(new TransferInfo()
+                            {
+                                From = t.FromId != null ? UInt160.Parse(GetAddress(t.FromId.Value).Hash) : null,
+                                To = t.ToId != null ? UInt160.Parse(GetAddress(t.ToId.Value).Hash) : null,
+                                Amount = new BigInteger(t.Amount),
+                                TxId = UInt256.Parse(t.TxId),
+                                Asset = UInt160.Parse(GetContract(t.AssetId).Hash),
+                                TimeStamp = time,
+                            });
+                        }
+
+                        transaction.Transfers = transfers;
+                    }
+                    pageList.List.Add(transaction);
+                }
             }
             return pageList;
         }
@@ -291,15 +330,24 @@ namespace Neo.Common.Storage
             BlockHeight = tx.BlockHeight,
             Sender = tx.Sender != null ? UInt160.Parse(tx.Sender.Hash) : null,
             Time = tx.Time.AsUtcTime(),
-            Transfers = tx.Transfers.Select(t => new TransferInfo()
-            {
-                From = t.From != null ? UInt160.Parse(t.From.Hash) : null,
-                To = t.To != null ? UInt160.Parse(t.To.Hash) : null,
-                Amount = new BigInteger(t.Amount),
-                TxId = UInt256.Parse(t.TxId),
-                Asset = UInt160.Parse(t.Asset.Hash),
-                TimeStamp = t.Time.ToTimestampMS(),
-            }).ToList()
+            //Transfers = tx.Transfers.ToList(),
+            //    .Select(t=>new TransferInfo(){
+            //    From = t.FromId != null ? UInt160.Parse(GetAddress(t.FromId.Value).Hash) : null,
+            //    To = t.To != null ? UInt160.Parse(t.To.Hash) : null,
+            //    Amount = new BigInteger(t.Amount),
+            //    TxId = UInt256.Parse(t.TxId),
+            //    Asset = UInt160.Parse(t.Asset.Hash),
+            //    TimeStamp = t.Time.ToTimestampMS(),
+            //}),
+            //Transfers = tx.Transfers.Select(t => new TransferInfo()
+            //{
+            //    From = t.From != null ? UInt160.Parse(t.From.Hash) : null,
+            //    To = t.To != null ? UInt160.Parse(t.To.Hash) : null,
+            //    Amount = new BigInteger(t.Amount),
+            //    TxId = UInt256.Parse(t.TxId),
+            //    Asset = UInt160.Parse(t.Asset.Hash),
+            //    TimeStamp = t.Time.ToTimestampMS(),
+            //}).ToList()
         };
 
 
@@ -357,7 +405,7 @@ namespace Neo.Common.Storage
         /// <returns></returns>
         public IEnumerable<BalanceInfo> FindAssetBalance(BalanceFilter filter)
         {
-            IQueryable<AssetBalanceEntity> query = _sqldb.AssetBalances.Include(a => a.Address).Include(a => a.Asset).Where(a => a.Asset.DeleteOrMigrateTxId == null);
+            IQueryable<AssetBalanceEntity> query = _sqldb.AssetBalances.Include(a => a.Address).Include(a => a.Asset).Where(a => a.Asset.DeleteTxId == null);
             if (filter.Addresses.NotEmpty())
             {
                 var addrs = filter.Addresses.Select(a => a.ToBigEndianHex()).ToList();
@@ -384,40 +432,29 @@ namespace Neo.Common.Storage
         }
 
 
-        public IEnumerable<Nep5ContractInfo> GetAllContracts()
+        public IEnumerable<ContractEntity> GetAllContracts()
         {
-            return _sqldb.Contracts.ToList().Select(ToNep5ContractInfo);
+            //return _sqldb.Contracts.ToList().Select(c => c.ToContractInfo());
+            return _sqldb.Contracts.ToList();
         }
 
 
         private ContractEntity GetActiveContract(UInt160 contract)
         {
             var contractHash = contract.ToBigEndianHex();
-            return _sqldb.Contracts.FirstOrDefault(c => c.Hash == contractHash && c.DeleteOrMigrateTxId == null);
+            return GetActiveContract(contractHash);
         }
 
-        public Nep5ContractInfo GetContract(UInt160 asset)
+        private ContractEntity GetActiveContract(string contractHash)
+        {
+            return _sqldb.Contracts.FirstOrDefault(c => c.Hash == contractHash && c.DeleteTxId == null);
+        }
+        public ContractEntity GetContract(UInt160 asset)
         {
             var assetInfo = GetActiveContract(asset);
-            return assetInfo == null ? null : ToNep5ContractInfo(assetInfo);
+            return assetInfo;
         }
 
-
-        private Nep5ContractInfo ToNep5ContractInfo(ContractEntity c)
-        {
-            return new Nep5ContractInfo()
-            {
-                Hash = UInt160.Parse(c.Hash),
-                Name = c.Name,
-                Symbol = c.Symbol,
-                Decimals = c.Decimals,
-                CreateTime = c.CreateTime,
-                CreateTxId = c.CreateTxId != null ? UInt256.Parse(c.CreateTxId) : null,
-                DeleteOrMigrateTxId = c.DeleteOrMigrateTxId != null ? UInt256.Parse(c.DeleteOrMigrateTxId) : null,
-                DeleteTime = c.DeleteTime,
-                MigrateTime = c.MigrateTime,
-            };
-        }
 
         #endregion
 
@@ -463,36 +500,27 @@ namespace Neo.Common.Storage
 
 
 
+
         /// <summary>
         /// Create contract, save immediately
         /// </summary>
         /// <param name="newContract"></param>
-        public void CreateContract(Nep5ContractInfo newContract)
+        public void CreateContract(ContractEntity newContract)
         {
-            var contractHash = newContract.Hash.ToBigEndianHex();
             var old = GetActiveContract(newContract.Hash);
             if (old == null)
             {
-                var contract = new ContractEntity()
-                {
-                    Hash = contractHash,
-                    Name = newContract.Name,
-                    Symbol = newContract.Symbol,
-                    Decimals = newContract.Decimals,
-                    CreateTime = newContract.CreateTime,
-                    CreateTxId = newContract.CreateTxId?.ToBigEndianHex(),
-                };
-                _sqldb.Contracts.Add(contract);
+                _sqldb.Contracts.Add(newContract);
                 _sqldb.SaveChanges();
 
                 //save create contract transaction record
-                _sqldb.InvokeRecords.Add(new InvokeRecordEntity()
-                {
-                    ContractId = contract.Id,
-                    TxId = contract.CreateTxId,
-                    Methods = "Deployed"
-                });
-                _sqldb.SaveChanges();
+                //_sqldb.InvokeRecords.Add(new InvokeRecordEntity()
+                //{
+                //    ContractId = newContract.Id,
+                //    TxId = newContract.CreateTxId,
+                //    Methods = "Deployed"
+                //});
+                //_sqldb.SaveChanges();
             }
         }
 
@@ -508,7 +536,7 @@ namespace Neo.Common.Storage
             var old = GetActiveContract(contractHash);
             if (old != null)
             {
-                old.DeleteOrMigrateTxId = txId.ToBigEndianHex();
+                old.DeleteTxId = txId.ToBigEndianHex();
                 old.DeleteTime = time;
                 _sqldb.SaveChanges();
             }
@@ -517,41 +545,33 @@ namespace Neo.Common.Storage
         /// <summary>
         /// Migrate contract, save immediately
         /// </summary>
-        /// <param name="contract"></param>
         /// <param name="migrateContract"></param>
-        /// <param name="txId"></param>
-        /// <param name="time"></param>
-        public void MigrateContract(UInt160 contract, Nep5ContractInfo migrateContract, UInt256 txId, DateTime time)
+        public void MigrateContract(ContractEntity migrateContract)
         {
-            var migrateContractHash = migrateContract.Hash.ToBigEndianHex();
-            var tx = txId.ToBigEndianHex();
-            var old = GetActiveContract(contract);
+            var old = GetActiveContract(migrateContract.Hash);
             if (old != null)
             {
-                old.DeleteOrMigrateTxId = tx;
-                old.MigrateTo = migrateContractHash;
-                old.MigrateTime = time;
-                var newContract = new ContractEntity()
+                var newUpdateRecord = new ContractUpdateRecordEntity()
                 {
-                    Hash = migrateContractHash,
-                    Name = migrateContract.Name,
-                    Symbol = migrateContract.Symbol,
-                    Decimals = migrateContract.Decimals,
-                    CreateTime = migrateContract.CreateTime,
-                    CreateTxId = tx,
+                    Hash = old.Hash,
+                    MigrateTxId = migrateContract.MigrateTxId,
+                    MigrateTime = migrateContract.MigrateTime.Value,
                 };
-                _sqldb.Contracts.Add(newContract);
-                _sqldb.SaveChanges();
 
-                _sqldb.InvokeRecords.Add(new InvokeRecordEntity()
-                {
-                    ContractId = newContract.Id,
-                    TxId = tx,
-                    Methods = "Deployed"
-                });
+                old.MigrateTxId = migrateContract.MigrateTxId;
+                old.MigrateTime = migrateContract.MigrateTime;
+                old.Symbol = migrateContract.Symbol;
+                old.AssetType = migrateContract.AssetType;
+                old.Decimals = migrateContract.Decimals;
+
+                _sqldb.ContractUpdateRecords.Add(newUpdateRecord);
+                //_sqldb.InvokeRecords.Add(new InvokeRecordEntity()
+                //{
+                //    ContractId = old.Id,
+                //    TxId = migrateContract.MigrateTxId,
+                //    Methods = "Updated"
+                //});
                 _sqldb.SaveChanges();
-                // migrate balance records to new contract
-                _sqldb.AssetBalances.Where(a => a.AssetId == old.Id).BatchUpdate(new AssetBalanceEntity() { AssetId = newContract.Id });
             }
         }
 
@@ -561,7 +581,9 @@ namespace Neo.Common.Storage
         #region Private
 
 
-        private readonly ConcurrentDictionary<UInt160, AddressEntity> _addressCache = new ConcurrentDictionary<UInt160, AddressEntity>();
+        private readonly ConcurrentDictionary<UInt160, AddressEntity> _addressCache = new();
+        private readonly ConcurrentDictionary<long, AddressEntity> _addressKeyCache = new();
+
         private AddressEntity GetOrCreateAddress(UInt160 address)
         {
             if (address == null) return null;
@@ -578,6 +600,7 @@ namespace Neo.Common.Storage
                 _sqldb.SaveChanges();
             }
             _addressCache[address] = old;
+            _addressKeyCache[old.Id] = old;
             return old;
         }
 
@@ -599,7 +622,7 @@ namespace Neo.Common.Storage
             IQueryable<Nep5TransferEntity> query = _sqldb.Nep5Transactions.Where(t => t.TxId != null)
                 .Include(t => t.From)
                 .Include(t => t.To)
-                .Include(t => t.Asset).Where(t => t.Asset.DeleteOrMigrateTxId == null);
+                .Include(t => t.Asset).Where(t => t.Asset.DeleteTxId == null);
 
             if (filter.FromOrTo.NotEmpty())
             {
@@ -659,7 +682,39 @@ namespace Neo.Common.Storage
 
         #endregion
 
+        #region AddressAndContractCache
 
+        private readonly ConcurrentDictionary<long, ContractEntity> _contractCache = new();
+        public ContractEntity GetContract(long id)
+        {
+            if (_contractCache.ContainsKey(id))
+            {
+                return _contractCache[id];
+            }
+            var contract = _sqldb.Contracts.FirstOrDefault(c => c.Id == id);
+            if (contract != null)
+            {
+                _contractCache[id] = contract;
+            }
+            return contract;
+        }
+
+
+        public AddressEntity GetAddress(long id)
+        {
+            if (_addressKeyCache.ContainsKey(id))
+            {
+                return _addressKeyCache[id];
+            }
+            var address = _sqldb.Addresses.FirstOrDefault(c => c.Id == id);
+            if (address != null)
+            {
+                _addressKeyCache[id] = address;
+            }
+            return address;
+        }
+
+        #endregion
 
 
         public void Dispose()

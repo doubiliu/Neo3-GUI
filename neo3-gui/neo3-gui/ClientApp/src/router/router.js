@@ -1,15 +1,15 @@
 import React from 'react';
 import {BrowserRouter, Route , Switch,Redirect} from 'react-router-dom';
-import Home from '../pages/home'
+import Home from '../components/home'
 import Sync from '../components/sync';
 
 import Chain from '../components/Chain/chain';
 import Chainlayout from '../components/Chain/chainlayout';
-import Blockdetail from '../components/Chain/blockdetail';
+import BlockDetail from '../components/Chain/blockdetail';
 import Blockhashdetail from '../components/Chain/hashdetail';
 import Chaintrans from '../components/Chain/trans';
-import Chainasset from '../components/Chain/asset';
-import Assetdetail from '../components/Chain/assetdetail';
+import ChainAsset from '../components/Chain/asset';
+import AssetDetail from '../components/Chain/assetdetail';
 
 import Walletlayout from '../components/Wallet/walletlayout';
 import Walletlist from '../components/Wallet/walletlist';
@@ -51,13 +51,13 @@ const BasicRoute = () => (
                 <Layout style={{ height: 'calc( 100vh )'}}>
                     <Route component={Chainlayout} />
                     <Route exact path="/chain" component={Chain} />
-                    <Route exact path="/chain/detail:height" component={Blockdetail} />
+                    <Route exact path="/chain/detail:height" component={BlockDetail} />
                     <Route exact path="/chain/hashdetail:height" component={Blockhashdetail} />
                     <Route exact path="/chain/transaction" component={Chaintrans} />
                     <Route exact path="/chain/transaction:hash" component={Transdetail} />
                     <Route exact path="/chain/untransaction:hash" component={Untransdetail} />
-                    <Route exact path="/chain/asset" component={Chainasset} />
-                    <Route exact path="/chain/asset:hash" component={Assetdetail} />
+                    <Route exact path="/chain/asset" component={ChainAsset} />
+                    <Route exact path="/chain/asset:hash" component={AssetDetail} />
                 </Layout>
             </Route>
             <Route path="/wallet">
