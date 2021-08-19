@@ -47,18 +47,17 @@ namespace Neo.Services.ApiServices
         //relate account
         public async Task<object> OnAccountBalance(string paccount)
         {
-            Console.WriteLine($"paccount:{paccount}");
             if (NoWallet()) return Error(ErrorCode.WalletNotOpen);
             var account = CurrentWallet.GetAccounts().Where(p => !p.WatchOnly).ToArray()[0].ScriptHash;
             var key = CurrentWallet.GetAccount(account).GetKey().Export().LoadWif();
-            Cryptography.ECC.ECPoint pk = ParseEcpoint(paccount, out var err);
-            if (err is not null) return err;
-            var ownerID = OwnerID.FromScriptHash(Contract.CreateSignatureRedeemScript(pk).ToScriptHash());
+/*            Cryptography.ECC.ECPoint pk = ParseEcpoint(paccount, out var err);
+            if (err is not null) return err;*/
+            var ownerID = OwnerID.FromScriptHash(paccount.ToScriptHash());
             using var client = OnCreateClientInternal(key);
             if (client is null) return Error(ErrorCode.CreateClientFault);
             if (OnGetBalanceInternal(client, key, ownerID,out FileStorage.API.Accounting.Decimal result))
             {
-                Console.WriteLine($"Fs current account :{Contract.CreateSignatureRedeemScript(pk).ToScriptHash()}, balance:{(result.Value == 0 ? 0 : result)}");
+                Console.WriteLine($"Fs current account :{paccount.ToScriptHash()}, balance:{(result.Value == 0 ? 0 : result)}");
                 return new Neo.BigDecimal(new BigInteger(result.Value), NativeContract.GAS.Decimals);
             }
             return Error(ErrorCode.GetBalanceFault);
@@ -369,7 +368,7 @@ namespace Neo.Services.ApiServices
         {
             var err = CheckAndParseAccount(paccount, out _, out ECDsa key);
             if (err is not null) return err;
-            if (pdata.Length > 2048 || pdata.Length < 1024)
+            if (pdata.Length > 2048*1000 || pdata.Length < 1024)
             {
                 Console.WriteLine("The data length out of range");
                 return Error(ErrorCode.InvalidPara);
@@ -687,11 +686,11 @@ namespace Neo.Services.ApiServices
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            var downloadrocess = TaskList[taskId];
+            var downloadprocess = TaskList[taskId];
             DirectoryInfo parentDirectory = null;
             if (!Directory.Exists(filePath)) parentDirectory = Directory.CreateDirectory(filePath);
             else parentDirectory = new DirectoryInfo(filePath);
-            var childrenDirectorys = parentDirectory.GetDirectories().Where(p => p.Name == taskId.ToString() + "_" + downloadrocess.TimeStamp).ToList();
+            var childrenDirectorys = parentDirectory.GetDirectories().Where(p => p.Name == taskId.ToString() + "_" + downloadprocess.TimeStamp).ToList();
             DirectoryInfo workDirectory = null;
             if (childrenDirectorys.Count > 0)
             {
@@ -699,7 +698,7 @@ namespace Neo.Services.ApiServices
             }
             else
             {
-                workDirectory = parentDirectory.CreateSubdirectory(taskId.ToString()+"_"+ downloadrocess.TimeStamp);
+                workDirectory = parentDirectory.CreateSubdirectory(taskId.ToString()+"_"+ downloadprocess.TimeStamp);
             }
             var taskCounts = 10;
             var tasks = new Task[taskCounts];
@@ -711,10 +710,10 @@ namespace Neo.Services.ApiServices
                     using var internalClient = OnCreateClientInternal(key);
                     if (internalClient is null) return;
                     int i = 0;
-                    while (threadIndex + i * taskCounts < downloadrocess.SubObjectIds.Length)
+                    while (threadIndex + i * taskCounts < downloadprocess.SubObjectIds.Length)
                     {
-                        var oid = downloadrocess.SubObjectIds[threadIndex + i * taskCounts];
-                        string tempfilepath = workDirectory.FullName + "\\QS_" + downloadrocess.SubObjectIds[threadIndex + i * taskCounts].String();
+                        var oid = downloadprocess.SubObjectIds[threadIndex + i * taskCounts];
+                        string tempfilepath = workDirectory.FullName + "\\QS_" + downloadprocess.SubObjectIds[threadIndex + i * taskCounts].String();
                         FileInfo tempfile = new FileInfo(tempfilepath);
                         if (tempfile.Exists)
                         {
@@ -725,7 +724,7 @@ namespace Neo.Services.ApiServices
                             if (objheader is null) continue;
                             if (downedData.Sha256().SequenceEqual(objheader.PayloadChecksum.Sum.ToByteArray()))
                             {
-                                Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadrocess.Current, (ulong)downedData.Length)}/{fileLength}");
+                                Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)downedData.Length)}/{fileLength}");
                                 continue;
                             }
                             else
@@ -739,7 +738,7 @@ namespace Neo.Services.ApiServices
                         tempstream.Flush();
                         tempstream.Close();
                         tempstream.Dispose();
-                        Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadrocess.Current, (ulong)payload.Length)}/{fileLength}");
+                        Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)payload.Length)}/{fileLength}");
                         i++;
                     }
                 });
@@ -749,12 +748,12 @@ namespace Neo.Services.ApiServices
             Task.WaitAll(tasks);
             //check failed task
             List<ObjectID> Comparefiles = new List<ObjectID>();
-            for (int i = 0; i < downloadrocess.SubObjectIds.Length; i++)
+            for (int i = 0; i < downloadprocess.SubObjectIds.Length; i++)
             {
                 bool hasfile = false;
                 foreach (FileInfo Tempfile in workDirectory.GetFiles())
                 {
-                    if (Tempfile.Name.Split('_')[1] == downloadrocess.SubObjectIds[i].String())
+                    if (Tempfile.Name.Split('_')[1] == downloadprocess.SubObjectIds[i].String())
                     {
                         hasfile = true;
                         break;
@@ -762,7 +761,7 @@ namespace Neo.Services.ApiServices
                 }
                 if (hasfile == false)
                 {
-                    Comparefiles.Add(downloadrocess.SubObjectIds[i]);
+                    Comparefiles.Add(downloadprocess.SubObjectIds[i]);
                 }
             }
             if (Comparefiles.Count > 0)
@@ -771,12 +770,12 @@ namespace Neo.Services.ApiServices
                 return Error(ErrorCode.DownloadFault);
             }
             //write file
-            string downPath = workDirectory.FullName + "\\" + downloadrocess.FileName;
+            string downPath = workDirectory.FullName + "\\" + downloadprocess.FileName;
             using (FileStream writestream = new FileStream(downPath, FileMode.Create, FileAccess.Write, FileShare.Write))
             {
-                for (int index = 0; index < downloadrocess.SubObjectIds.Length; index++)
+                for (int index = 0; index < downloadprocess.SubObjectIds.Length; index++)
                 {
-                    string tempfilepath = workDirectory.FullName + "\\QS_" + downloadrocess.SubObjectIds[index].String();
+                    string tempfilepath = workDirectory.FullName + "\\QS_" + downloadprocess.SubObjectIds[index].String();
                     FileInfo Tempfile = new FileInfo(tempfilepath);
                     using FileStream readTempStream = new FileStream(Tempfile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     long onefileLength = Tempfile.Length;
@@ -789,10 +788,10 @@ namespace Neo.Services.ApiServices
                 writestream.Dispose();
             }
             //delete temp file
-            workDirectory.GetFiles().Where(p => p.Name != downloadrocess.FileName).ToList().ForEach(p => p.Delete());
+            workDirectory.GetFiles().Where(p => p.Name != downloadprocess.FileName).ToList().ForEach(p => p.Delete());
             Console.WriteLine("Download file successfully");
-            downloadrocess.TimeSpent = stopWatch.Elapsed;
-            downloadrocess.Success();
+            downloadprocess.TimeSpent = stopWatch.Elapsed;
+            downloadprocess.Success();
             return null;
         }
 

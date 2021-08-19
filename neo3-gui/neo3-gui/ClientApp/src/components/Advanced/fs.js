@@ -133,7 +133,7 @@ class Fs extends React.Component {
             "id": "1",
             "method": "OnAccountBalance",
             "params": {
-                "paccount": this.state.ppublickey
+                "paccount": this.state.paccount
             }
         })
             .then((response) => {
@@ -753,11 +753,11 @@ class Fs extends React.Component {
                                     </TabPane>
                                     <TabPane tab={t("translation:advanced.fs.account-title")} key="2">
                                         <Search
-                                            placeholder={t("translation:advanced.fs.account-input-publickey")}
+                                            placeholder={t("translation:advanced.fs.account-input-address")}
                                             enterButton={t("translation:advanced.fs.com-btn-query")}
                                             size="large"
-                                            value={this.state.ppublickey}
-                                            onChange={this.handelChangeInput.bind(this, "ppublickey")}
+                                            value={this.state.paccount}
+                                            onChange={this.handelChangeInput.bind(this, "paccount")}
                                             onSearch={this.onAccountBalance.bind(this)}
                                             style={{ width: '50%' }}
                                         />
@@ -850,7 +850,7 @@ class Fs extends React.Component {
                                         </Row>
                                         <Row>
                                             <Col span={12}>
-                                                <TextArea rows={4} placeholder={"Please input object data,data size【1M,2M】"} onChange={this.handelChangeInput.bind(this, "pobjectdata")} prefix={<EditOutlined />} />
+                                                <TextArea rows={4} placeholder={"Please input object data,data size【1K,2M】"} onChange={this.handelChangeInput.bind(this, "pobjectdata")} prefix={<EditOutlined />} />
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
