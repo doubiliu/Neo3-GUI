@@ -32,6 +32,7 @@ using System.Numerics;
 using Neo.IO.Json;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Object = Neo.FileStorage.API.Object.Object;
 
 namespace Neo.Services.ApiServices
 {
@@ -39,8 +40,6 @@ namespace Neo.Services.ApiServices
     {
         private static UInt160 FsContractHash => CliSettings.Default.Fs.FsContractHash;
         private static string Host => CliSettings.Default.Fs.Host;
-        private static string DownLoadPath => CliSettings.Default.Fs.DownloadPath;
-        private static string UpLoadPath => CliSettings.Default.Fs.UploadPath;
         private static ConcurrentDictionary<int, Process> TaskList = new ConcurrentDictionary<int, Process>();
         private static int TaskIndex;
 
@@ -644,7 +643,7 @@ namespace Neo.Services.ApiServices
                     while (threadIndex + i * taskCounts < subObjectIDs.Length)
                     {
                         byte[] data = OnGetFileInternal(filePath, (threadIndex + i * taskCounts) * PackSize, PackSize, FileLength);
-                        var obj = OnCreateObjectInternal(cid, key, data, ObjectType.Regular, attributes);
+                        Object obj = OnCreateObjectInternal(cid, key, data, ObjectType.Regular, attributes);
                         //check has upload;                        
                         //var objheader = OnGetObjectHeaderInternal(internalClient, cid, obj.ObjectId, false);
                         if (subObjectIDs[threadIndex + i * taskCounts] is not null || OnPutObjectInternal(internalClient, obj, internalSession))
@@ -688,10 +687,11 @@ namespace Neo.Services.ApiServices
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
+            var downloadrocess = TaskList[taskId];
             DirectoryInfo parentDirectory = null;
             if (!Directory.Exists(filePath)) parentDirectory = Directory.CreateDirectory(filePath);
             else parentDirectory = new DirectoryInfo(filePath);
-            var childrenDirectorys = parentDirectory.GetDirectories().Where(p => p.Name == taskId.ToString()).ToList();
+            var childrenDirectorys = parentDirectory.GetDirectories().Where(p => p.Name == taskId.ToString() + "_" + downloadrocess.TimeStamp).ToList();
             DirectoryInfo workDirectory = null;
             if (childrenDirectorys.Count > 0)
             {
@@ -699,9 +699,8 @@ namespace Neo.Services.ApiServices
             }
             else
             {
-                workDirectory = parentDirectory.CreateSubdirectory(taskId.ToString());
+                workDirectory = parentDirectory.CreateSubdirectory(taskId.ToString()+"_"+ downloadrocess.TimeStamp);
             }
-            var downloadrocess = TaskList[taskId];
             var taskCounts = 10;
             var tasks = new Task[taskCounts];
             for (int index = 0; index < taskCounts; index++)
@@ -714,14 +713,14 @@ namespace Neo.Services.ApiServices
                     int i = 0;
                     while (threadIndex + i * taskCounts < downloadrocess.SubObjectIds.Length)
                     {
+                        var oid = downloadrocess.SubObjectIds[threadIndex + i * taskCounts];
                         string tempfilepath = workDirectory.FullName + "\\QS_" + downloadrocess.SubObjectIds[threadIndex + i * taskCounts].String();
                         FileInfo tempfile = new FileInfo(tempfilepath);
                         if (tempfile.Exists)
                         {
-                            using FileStream tempstream = new FileStream(tempfilepath, FileMode.Open);
-                            byte[] downedData = new byte[tempstream.Length];
-                            tempstream.Read(downedData, 0, downedData.Length);
-                            var oid = downloadrocess.SubObjectIds[threadIndex + i * taskCounts];
+                            using FileStream tempreadstream = new FileStream(tempfilepath, FileMode.Open);
+                            byte[] downedData = new byte[tempreadstream.Length];
+                            tempreadstream.Read(downedData, 0, downedData.Length);
                             var objheader = OnGetObjectHeaderInternal(internalClient, cid, oid);
                             if (objheader is null) continue;
                             if (downedData.Sha256().SequenceEqual(objheader.PayloadChecksum.Sum.ToByteArray()))
@@ -732,19 +731,15 @@ namespace Neo.Services.ApiServices
                             else
                                 tempfile.Delete();
                         }
-                        else
-                        {
-                            using FileStream tempstream = new FileStream(tempfilepath, FileMode.Create, FileAccess.Write, FileShare.Write);
-                            var oid = downloadrocess.SubObjectIds[threadIndex + i * taskCounts];
-                            var obj = OnGetObjectInternal(internalClient, cid, oid);
-                            if (obj is null) return;
-                            var payload = obj.Payload.ToByteArray();
-                            tempstream.Write(payload, 0, payload.Length);
-                            tempstream.Flush();
-                            tempstream.Close();
-                            tempstream.Dispose();
-                            Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadrocess.Current, (ulong)payload.Length)}/{fileLength}");
-                        }
+                        using FileStream tempstream = new FileStream(tempfilepath, FileMode.Create, FileAccess.Write, FileShare.Write);
+                        var obj = OnGetObjectInternal(internalClient, cid, oid);
+                        if (obj is null) return;
+                        var payload = obj.Payload.ToByteArray();
+                        tempstream.Write(payload, 0, payload.Length);
+                        tempstream.Flush();
+                        tempstream.Close();
+                        tempstream.Dispose();
+                        Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadrocess.Current, (ulong)payload.Length)}/{fileLength}");
                         i++;
                     }
                 });

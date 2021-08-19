@@ -114,8 +114,6 @@ namespace Neo.Common.Consoles
     {
         public string Host { get; }
         public UInt160 FsContractHash { get; }
-        public string UploadPath { get; }
-        public string DownloadPath { get; }
 
         public FsSettings(IConfigurationSection section)
         {
@@ -123,8 +121,6 @@ namespace Neo.Common.Consoles
             {
                 Host = section.GetValue("Host", "http://192.168.130.71:8080");
                 FsContractHash = UInt160.Parse(section.GetSection("FsContractHash").Value);
-                UploadPath = section.GetValue("UploadPath", @"./upload/");
-                DownloadPath = section.GetValue("DownloadPath", @"./downloadPath/");
             }
         }
     }

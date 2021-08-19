@@ -21,9 +21,7 @@
     "PluginURL": "https://github.com/neo-project/neo-modules/releases/download/v{1}/{0}.zip",
     "Fs": {
       "Host": "http://st01.testnet.fs.neo.org:8080",
-      "FsContractHash": "0x51cf687eb6625eb1a2b98b0fb4e9d52bdf95f3a6",
-      "UploadPath": "./upload/",
-      "DownloadPath": "./downloadPath/"
+      "FsContractHash": "0x51cf687eb6625eb1a2b98b0fb4e9d52bdf95f3a6"
     }
   },
   "ProtocolConfiguration": {

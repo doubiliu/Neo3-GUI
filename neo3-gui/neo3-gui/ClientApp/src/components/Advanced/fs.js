@@ -650,7 +650,7 @@ class Fs extends React.Component {
                     downloadpath: res.filePaths[0].substring(0, res.filePaths[0].length - res.filePaths[0].split('\\')[res.filePaths[0].split('\\').length - 1].length),
                     isOpenDialog: false,
                 }, () => {
-                    this.onGetSeedFile(res.filePaths[0])
+                    if (flag <0) this.onGetSeedFile(res.filePaths[0])
                 }
             );
         });
