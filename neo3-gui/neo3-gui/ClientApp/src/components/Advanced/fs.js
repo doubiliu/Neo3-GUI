@@ -328,7 +328,7 @@ class Fs extends React.Component {
                     return;
                 } else if (_data.msgType === 3) {
                     var _data = response.data.result;
-                    this.setState({ eacl: _data });
+                    this.setState({ peaclString: _data });
                     return;
                 }
             })
@@ -343,7 +343,7 @@ class Fs extends React.Component {
             "id": "1",
             "method": "OnSetContainerEACL",
             "params": {
-                "eaclString": this.state.pcontainerId,
+                "paccount": this.state.paccount,
                 "eaclString": this.state.peaclString
             }
         })
@@ -829,7 +829,7 @@ class Fs extends React.Component {
                                         <Button size="large" onClick={this.onSetContainerEACL.bind(this)}>{t("translation:advanced.fs.eacl-btn-set")}</Button>
                                         <br />
                                         <br />
-                                        <TextArea rows={4} placeholder={"container eacl info"} value={this.state.eacl.toString()} onChange={this.handelChangeInput.bind(this, "peacl")} prefix={<EditOutlined />} />
+                                        <TextArea rows={4} placeholder={"container eacl info"} value={this.state.peaclString.toString()} onChange={this.handelChangeInput.bind(this, "peaclString")} prefix={<EditOutlined />} />
                                     </TabPane>
                                     <TabPane tab={t("translation:advanced.fs.object-title")} key="5">
                                         <Row>
