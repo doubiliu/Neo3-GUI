@@ -956,12 +956,12 @@ class Fs extends React.Component {
                                             </Col>
                                         </Row>
                                         <Row>
-                                            <Col span={12}>
-                                                <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-uploadloadpath")} value={this.state.uploadpath} style={{ width: "45%" }} /><Button icon={<UploadOutlined />} onClick={this.selectFile.bind(this, 1)} style={{ width: "55%" }}>Select Upload File</Button>
+                                                <Col span={12}>
+                                                    <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-uploadloadpath")} value={this.state.uploadpath} onChange={this.handelChangeInput.bind(this,"uploadpath")} style={{ width: "45%" }} /><Button icon={<UploadOutlined />} onClick={this.selectFile.bind(this, 1)} style={{ width: "55%" }}>Select Upload File</Button>
                                             </Col>
                                             <Col span={1}></Col>
                                             <Col span={11}>
-                                                <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-downloadpath")} value={this.state.downloadpath} style={{ width: "45%" }} /><Button icon={<DownloadOutlined />} onClick={this.selectFile.bind(this, -1)} style={{ width: "55%" }}>Select DownLoad Seed</Button>
+                                                    <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-downloadpath")} value={this.state.downloadpath} onChange={this.handelChangeInput.bind(this, "downloadpath")} style={{ width: "45%" }} /><Button icon={<DownloadOutlined />} onClick={this.selectFile.bind(this, -1)} style={{ width: "55%" }}>Select DownLoad Seed</Button>
                                             </Col>
                                         </Row>
                                         <Row>

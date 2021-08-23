@@ -450,6 +450,7 @@ namespace Neo.Services.ApiServices
                 result.Add(@object);
             }
             Console.WriteLine($"Object info:{result}");
+            if (result.ToString().Length > 1024 * 100) throw new Exception("Data is too big to show.");
             return result.ToString();
         }
 
