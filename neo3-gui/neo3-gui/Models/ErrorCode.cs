@@ -100,5 +100,7 @@ namespace Neo.Models
         TooMuchTask = 20046,
         [Description("Download file fault.")]
         DownloadFault = 20047,
+        [Description("Can not find  file.")]
+        FileNotFound = 20048,
     }
 }

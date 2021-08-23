@@ -15,7 +15,8 @@ import {
     Switch,
     Select,
     List,
-    Progress
+    Progress,
+    Spin
 } from 'antd';
 import { Layout } from 'antd';
 import { Statistic } from 'antd';
@@ -44,6 +45,7 @@ class Fs extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            loading:false,
             disabled: true,
             visible: false,
             isOpenDialog: false,
@@ -367,7 +369,7 @@ class Fs extends React.Component {
     //relate object
     OnGetObject = objectId=> {
         const { t } = this.props;
-        this.setState({ pobjectId: objectId }, () => {
+        this.setState({ pobjectId: objectId, loading:true }, () => {
                 axios.post('http://localhost:8081', {
                     "id": "1",
                     "method": "OnGetObject",
@@ -380,10 +382,11 @@ class Fs extends React.Component {
                     .then((response) => {
                         var _data = response.data;
                         if (_data.msgType === -1) {
+                            this.setState({ loading: false });
                             ModalError(_data, t("translation:advanced.fs.object-query-fault"));
                             return;
                         } else if (_data.msgType === 3) {
-                            this.setState({ object: _data.result });
+                            this.setState({ object: _data.result, loading: false });
                             if (JSON.parse(_data.result).length != 1) {
                                 this.setState({ psubIds: (JSON.parse(_data.result)[1])["subIds"].toString() });
                             }
@@ -464,7 +467,7 @@ class Fs extends React.Component {
             "method": "OnDeleteObject",
             "params": {
                 "containerId": this.state.pcontainerId,
-                "pobjectIds": this.state.batchDelete ? this.state.pobjectId : this.state.pobjectId + "_" + this.state.psubIds,
+                "pobjectIds": this.state.batchDelete ? this.state.pobjectId + "_" + this.state.psubIds:this.state.pobjectId,
                 "paccount": this.state.paccount,
             }
         })
@@ -718,6 +721,7 @@ class Fs extends React.Component {
             <Layout className="gui-container">
                 <Sync />
                 <Content className="mt3">
+                    <Spin tip="Loading..." spinning={this.state.loading}>
                     <Row gutter={[30, 0]} style={{ 'minHeight': 'calc( 100vh - 120px )' }}>
                         <Col span={24} className="bg-white pv4">
                             <PageHeader title={t('translation:advanced.fs.title')}></PageHeader>
@@ -894,13 +898,13 @@ class Fs extends React.Component {
                                                 </Row>
                                                 <Row>
                                                     <Col span={ 12}>
-                                                        <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.OnGetObject.bind(this)}/>
+                                                        <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.OnGetObject.bind(this)} loading={true}/>
                                                     </Col>
                                                     <Col span={7}>
                                                         <Button size="large" onClick={this.onDeleteObject.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button>
                                                     </Col>
                                                     <Col span={5}>
-                                                        <Switch checkedChildren={"批量删除"} unCheckedChildren={"单一删除"} defaultChecked onChange={this.switchChange.bind(this, !this.state.batchDelete)} size="large" />
+                                                        <Switch checkedChildren={"单一删除"} unCheckedChildren={"批量删除"} defaultChecked onChange={this.switchChange.bind(this, !this.state.batchDelete)} size="large" />
                                                     </Col>
                                                 </Row>
                                                 <Row>
@@ -932,7 +936,7 @@ class Fs extends React.Component {
                                                     </Col>
                                                 </Row>
                                             </Col>
-                                        </Row>
+                                            </Row>
                                     </TabPane>
                                     <TabPane tab={t("translation:advanced.fs.bigfile-title")} key="6">
                                         <Row>
@@ -978,7 +982,8 @@ class Fs extends React.Component {
                                 </Tabs>
                             </div>
                         </Col>
-                    </Row>
+                        </Row>
+                    </Spin>
                 </Content>
                 <Modal
                     className="set-modal"
@@ -1082,3 +1087,14 @@ const ModalSuccess = (data, title) => {
         okText: <Trans>button.ok</Trans>
     });
 };
+
+const Loading = (show) => {
+    return (
+        <Spin tip="Loading..." spinning={ show}>
+         <Alert
+            message="Alert message title"
+            description="Further details about the context of this alert."
+            type="info"
+        />
+    </Spin>)
+}

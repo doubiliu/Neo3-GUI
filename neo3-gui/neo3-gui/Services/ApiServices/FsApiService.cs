@@ -509,7 +509,14 @@ namespace Neo.Services.ApiServices
             if (err is not null) return err;
             ContainerID cid = ParseContainerID(containerId, out var error);
             if (error is not null) return error;
-            FileInfo fileInfo = new FileInfo(filePath);
+            FileInfo fileInfo = null;
+            try {
+                fileInfo = new FileInfo(filePath);
+                if (!fileInfo.Exists) return Error(ErrorCode.AddressNotFound);
+            }
+            catch {
+                return Error(ErrorCode.AddressNotFound);
+            }
             var FileLength = fileInfo.Length;
             //data segmentation
             long PackCount = 0;
@@ -547,11 +554,11 @@ namespace Neo.Services.ApiServices
             if (TaskList.Select(p => p.Value.Flag == 0).Count() > 5) return Error(ErrorCode.TooMuchTask);
             var err = CheckAndParseAccount(paccount, out UInt160 account, out ECDsa key);
             if (err is not null) return err;
+            if (filePath is null || filePath == "") return Error(ErrorCode.InvalidPara);
             ContainerID cid = ParseContainerID(containerId, out err);
             if (err is not null) return err;
             ObjectID oid = ParseObjectID(objectId, out err);
             if (err is not null) return err;
-
             var subObjectIDs = new List<ObjectID>();
             //download storagegroup object
             var totalDataSize = 0ul;
