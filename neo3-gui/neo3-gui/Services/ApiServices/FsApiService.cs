@@ -435,8 +435,22 @@ namespace Neo.Services.ApiServices
             if (client is null) return Error(ErrorCode.CreateClientFault);
             var obj = OnGetObjectInternal(client, cid, oid);
             if (obj is null) return Error(ErrorCode.GetObjectFault);
-            Console.WriteLine($"Object info:{obj.ToJson()}");
-            return obj.ToJson().ToString();
+            JArray result = new JArray();
+            result.Add(obj.ToJson());
+            if (obj.ObjectType == ObjectType.StorageGroup)
+            {
+                List<string> subObjectIDs = new List<string>();
+                var sg = StorageGroup.Parser.ParseFrom(obj.Payload.ToByteArray());
+                foreach (var m in sg.Members) {
+                    subObjectIDs.Add(m.String());
+                }
+                string.Join("_", subObjectIDs);
+                JObject @object = new JObject();
+                @object["subIds"]= string.Join("_", subObjectIDs);
+                result.Add(@object);
+            }
+            Console.WriteLine($"Object info:{result}");
+            return result.ToString();
         }
 
         public async Task<object> OnListObject(string containerId, string paccount = null)
