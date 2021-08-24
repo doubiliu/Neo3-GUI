@@ -904,7 +904,7 @@ class Fs extends React.Component {
                                                         <Button size="large" onClick={this.onDeleteObject.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button>
                                                     </Col>
                                                     <Col span={5}>
-                                                        <Switch checkedChildren={"单一删除"} unCheckedChildren={"批量删除"} defaultChecked onChange={this.switchChange.bind(this, !this.state.batchDelete)} size="large" />
+                                                        <Switch checkedChildren={"单一"} unCheckedChildren={"关联"} defaultChecked onChange={this.switchChange.bind(this, !this.state.batchDelete)} size="large" />
                                                     </Col>
                                                 </Row>
                                                 <Row>
@@ -920,7 +920,7 @@ class Fs extends React.Component {
                                                                 <TextArea rows={10} placeholder={"Please input object data,data size【1K,2M】"} onChange={this.handelChangeInput.bind(this, "pobjectdata")} value={this.state.pobjectdata} prefix={<EditOutlined />} />
                                                             </TabPane>
                                                             <TabPane tab={"StorageGroup对象"} key="2">
-                                                                <TextArea rows={10} placeholder={"Please input objectId,用_分割"} onChange={this.handelChangeInput.bind(this, "psubIds")} value={this.state.psubIds} prefix={<EditOutlined />} />
+                                                                    <TextArea rows={10} placeholder={"Please input objectId,用_分割"} onChange={this.handelChangeInput.bind(this, "pobjectIds")} value={this.state.pobjectIds} prefix={<EditOutlined />} />
                                                             </TabPane>
                                                         </Tabs>
                                                     </Col>
