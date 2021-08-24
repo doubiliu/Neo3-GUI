@@ -45,14 +45,14 @@ class Fs extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            loading:false,
+            loading: false,
             disabled: true,
             visible: false,
             isOpenDialog: false,
             uploadpath: "",
             downloadpath: "",
             show: false,
-            batchDelete:false,
+            batchDelete: false,
             objecttype: 1,
             tableswitch: 0,
             title: "fs",
@@ -66,7 +66,7 @@ class Fs extends React.Component {
             peaclString: "",
             pobjectId: "",
             pobjectIds: "",
-            psubIds:"",
+            psubIds: "",
             peacl: "",
             pobject: "",
             pobjectdata: "",
@@ -95,7 +95,6 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data.result;
                 this.setState({ epoch: _data });
-                //console.log("data:" + _data);
                 return;
             })
             .catch(function (error) {
@@ -120,7 +119,6 @@ class Fs extends React.Component {
                     return;
                 } else if (_data.msgType === 3) {
                     var _data = response.data.result;
-                    //console.log(_data);
                     this.setState({ nodeinfo: _data });
                     return;
                 }
@@ -367,35 +365,35 @@ class Fs extends React.Component {
     }
 
     //relate object
-    OnGetObject = objectId=> {
+    OnGetObject = objectId => {
         const { t } = this.props;
-        this.setState({ pobjectId: objectId, loading:true }, () => {
-                axios.post('http://localhost:8081', {
-                    "id": "1",
-                    "method": "OnGetObject",
-                    "params": {
-                        "containerId": this.state.pcontainerId,
-                        "objectId": this.state.pobjectId,
-                        "paccount": this.state.paccount
+        this.setState({ pobjectId: objectId, loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnGetObject",
+                "params": {
+                    "containerId": this.state.pcontainerId,
+                    "objectId": this.state.pobjectId,
+                    "paccount": this.state.paccount
+                }
+            })
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.object-query-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ object: _data.result, loading: false });
+                        if (JSON.parse(_data.result).length != 1) {
+                            this.setState({ psubIds: (JSON.parse(_data.result)[1])["subIds"].toString() });
+                        }
+                        return;
                     }
                 })
-                    .then((response) => {
-                        var _data = response.data;
-                        if (_data.msgType === -1) {
-                            this.setState({ loading: false });
-                            ModalError(_data, t("translation:advanced.fs.object-query-fault"));
-                            return;
-                        } else if (_data.msgType === 3) {
-                            this.setState({ object: _data.result, loading: false });
-                            if (JSON.parse(_data.result).length != 1) {
-                                this.setState({ psubIds: (JSON.parse(_data.result)[1])["subIds"].toString() });
-                            }
-                            return;
-                        }
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
+                .catch(function (error) {
+                    console.log(error);
+                });
         });
     }
 
@@ -428,7 +426,7 @@ class Fs extends React.Component {
     onPutObject() {
         const { t } = this.props;
         var flag = this.state.objecttype;
-        axios.post('http://localhost:8081', flag==1 ? {
+        axios.post('http://localhost:8081', flag == 1 ? {
             "id": "1",
             "method": "OnPutObject",
             "params": {
@@ -467,7 +465,7 @@ class Fs extends React.Component {
             "method": "OnDeleteObject",
             "params": {
                 "containerId": this.state.pcontainerId,
-                "pobjectIds": this.state.batchDelete ? this.state.pobjectId + "_" + this.state.psubIds:this.state.pobjectId,
+                "pobjectIds": this.state.batchDelete ? this.state.pobjectId + "_" + this.state.psubIds : this.state.pobjectId,
                 "paccount": this.state.paccount,
             }
         })
@@ -494,8 +492,8 @@ class Fs extends React.Component {
             "method": "OnUploadFile",
             "params": {
                 "taskId": taskId,
-                "containerId": containerId,//this.state.pcontainerId,
-                "filePath": uploadpath,//this.state.uploadpath,
+                "containerId": containerId,
+                "filePath": uploadpath,
                 "paccount": this.state.paccount,
                 "timestamp": timestamp,
             }
@@ -516,16 +514,16 @@ class Fs extends React.Component {
             });
     }
 
-    onDownloadFile = (taskId, containerId, objectId, downloadpath,timestamp) => {
+    onDownloadFile = (taskId, containerId, objectId, downloadpath, timestamp) => {
         const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": 1,
             "method": "OnDownloadFile",
             "params": {
                 "taskId": taskId,
-                "containerId": containerId,//this.state.pcontainerId,
-                "objectId": objectId,//this.state.pobjectId,
-                "filePath": downloadpath,//this.state.downloadpath,
+                "containerId": containerId,
+                "objectId": objectId,
+                "filePath": downloadpath,
                 "paccount": this.state.paccount,
                 "timestamp": timestamp,
             }
@@ -556,7 +554,6 @@ class Fs extends React.Component {
         })
             .then((response) => {
                 var _data = response.data;
-                //console.log(_data);
                 if (_data.msgType === -1) {
                     return;
                 } else if (_data.msgType === 3) {
@@ -610,7 +607,7 @@ class Fs extends React.Component {
 
     tabParamterClean = (key) => {
         this.setState({
-            tableswitch:key,
+            tableswitch: key,
             ppublickey: "",
             pbalance: 0,
             ppolicyString: "",
@@ -619,12 +616,12 @@ class Fs extends React.Component {
             peaclString: "",
             pobjectId: "",
             pobjectIds: "",
-            psubIds:"",
+            psubIds: "",
             peacl: "",
             pobject: "",
             pobjectdata: "",
-            downloadpath:"",
-            uploadpath:"",
+            downloadpath: "",
+            uploadpath: "",
 
             balance: 0,
             epoch: 0,
@@ -656,7 +653,7 @@ class Fs extends React.Component {
                     downloadpath: res.filePaths[0].substring(0, res.filePaths[0].length - res.filePaths[0].split('\\')[res.filePaths[0].split('\\').length - 1].length),
                     isOpenDialog: false,
                 }, () => {
-                    if (flag <0) this.onGetSeedFile(res.filePaths[0])
+                    if (flag < 0) this.onGetSeedFile(res.filePaths[0])
                 }
             );
         });
@@ -722,261 +719,261 @@ class Fs extends React.Component {
                 <Sync />
                 <Content className="mt3">
                     <Spin tip="Loading..." spinning={this.state.loading}>
-                    <Row gutter={[30, 0]} style={{ 'minHeight': 'calc( 100vh - 120px )' }}>
-                        <Col span={24} className="bg-white pv4">
-                            <PageHeader title={t('translation:advanced.fs.title')}></PageHeader>
-                            <div className="pa3">
-                                <br />
-                                <Row>
-                                    <Col span={12}>
-                                        <SelectItem items={accounts.map(accounts => accounts.address)} placeholder={t("translation:advanced.fs.com-select-account")} func={this.onListContainer.bind(this)} />
-                                    </Col>
-                                    <Col span={1}>
-                                    </Col>
-                                    <Col span={11}>
-                                        <SelectItem items={this.state.containerIds} placeholder={t("translation:advanced.fs.com-select-cid")} func={this.handelChange.bind(this, "pcontainerId")} />
-                                    </Col>
-                                </Row>
-                            </div>
-                            <div className="pa3">
-                                <Tabs className="fs-title" defaultActiveKey="1" onChange={this.tabParamterClean.bind(this)}>
-                                    <TabPane tab={t("translation:advanced.fs.node-title")} key="1">
-                                        <Row>
-                                            <Col span={24}>
-                                                <Card title={t("translation:advanced.fs.node-epoch")}>
-                                                    <p><Statistic value={this.state.epoch} prefix={<RetweetOutlined />} /></p>
-                                                </Card>
-                                            </Col>
-                                        </Row>
-                                        <Row>
-                                            <Col span={24}>
-                                                <Card title={t("translation:advanced.fs.node-nodeinfo")} sytle={{ width: "100%" }}>
-                                                    <p>{"PublicKey:"}{this.state.nodeinfo.publicKey}</p>
-                                                    <p>{"Addresses:"}{JSON.stringify(this.state.nodeinfo.addresses)}</p>
-                                                    <p>{"State:"}{this.state.nodeinfo.state}</p>
-                                                </Card>
-                                            </Col>
-                                        </Row>
-                                    </TabPane>
-                                    <TabPane tab={t("translation:advanced.fs.account-title")} key="2">
-                                        <Row>
-                                            <Col span={15}>
-                                                <p size="large">{"Balance:"}{this.state.balance.toString()}{" gas"}</p>
-                                            </Col>
-                                            <Col span={ 5}>
-
-                                            </Col>
-                                            <Col span={4}>
-                                                <Button size="large" onClick={this.onAccountBalance.bind(this)}>{t("translation:advanced.fs.com-btn-query")}</Button>
-                                            </Col>
-                                        </Row>
-                                        <Row>
-                                            <Col span={ 15}>
-                                                <Input placeholder={t("translation:advanced.fs.account-input-gascount")} value={this.state.pbalance} onChange={this.handelChangeInput.bind(this, "pbalance")} style={{ width: '100%' }} />
-                                            </Col>
-                                            <Col span={1}>
-
-                                            </Col>
-                                            <Col span={4}>
-                                                <Button size="large" onClick={this.onAccountDeposite.bind(this)}>{t("translation:advanced.fs.account-btn-deposit")}</Button>
-
-                                            </Col>
-                                            <Col span={4}>
-                                                <Button size="large" onClick={this.onAccountWithdraw.bind(this)}>{t("translation:advanced.fs.account-btn-withdraw")}</Button>
-
-                                            </Col>
-                                        </Row>
-                                    </TabPane>
-                                    <TabPane tab={t("translation:advanced.fs.container-title")} key="3">
-                                        <Row>
-                                            <Col span={12}>
-                                                <Row>
-                                                    <Col span={ 24}>
-                                                    <Input placeholder={t("translation:advanced.fs.com-input-cid")} value={this.state.pcontainerId} onChange={this.handelChangeInput.bind(this, "pcontainerId")} style={{ width: '100%' }} />
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={12}>
-                                                        <Button size="large" onClick={this.onGetContainer.bind(this)}>{t("translation:advanced.fs.com-btn-query")}</Button>
-                                                    </Col>
-                                                    <Col span={12}>
-                                                        <Button size="large" onClick={this.onDeleteContainer.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button>
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={ 24}>
-                                                        <Card size="large" title="Container Info">
-                                                            <p prefix={<EditOutlined />} >{this.state.containerinfo.toString()}</p>
-                                                        </Card>
-                                                    </Col>
-                                                </Row>
-                                            </Col>
-                                            <Col span={1}>
-                                            </Col>
-                                            <Col span={11}>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <Input placeholder={t("translation:advanced.fs.container-input-policy")} onChange={this.handelChangeInput.bind(this, "ppolicyString")} value={this.state.ppolicyString } style={{ width: '100%' }} size="large" />
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <Input placeholder={t("translation:advanced.fs.container-input-basicacl")} onChange={this.handelChangeInput.bind(this, "pbasicAcl")} value={this.state.pbasicAcl} style={{ width: '100%' }} size="large"/>
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <Input placeholder={t("translation:advanced.fs.container-input-attributes")} onChange={this.handelChangeInput.bind(this, "pattributesString")} value={this.state.pattributesString}  style={{ width: '100%' }} size="large"/>
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={ 24}>
-                                                        <Button size="large" onClick={this.onPutContainer.bind(this)}>{t("translation:advanced.fs.com-btn-create")}</Button>
-
-                                                    </Col>
-                                                </Row>
-                                            </Col>
-                                        </Row>
-                                    </TabPane>
-                                    <TabPane tab={t("translation:advanced.fs.eacl-title")} key="4">
-                                        <Row>
-                                            <Col span={12}>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <Search
-                                                            placeholder={t("translation:advanced.fs.com-input-cid")}
-                                                            enterButton={t("translation:advanced.fs.com-btn-query")}
-                                                            size="large"
-                                                            value={this.state.pcontainerId}
-                                                            onChange={this.handelChangeInput.bind(this, "pcontainerId")}
-                                                            onSearch={this.onGetContainerEACL.bind(this)}
-                                                            style={{ width: '100%' }}
-                                                        />
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={ 24}>
-                                                        <TextArea rows={12} placeholder={"Container Eacl Info:"} value={this.state.eacl.toString()} prefix={<EditOutlined />} />
-                                                    </Col>
-                                                </Row>
-                                            </Col>
-                                            <Col span={ 1}></Col>
-                                            <Col span={11}>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <TextArea rows={12} placeholder={"Please input eacl"} onChange={this.handelChangeInput.bind(this, "peaclString")} prefix={<EditOutlined />} />
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <br/>
-                                                        <Button size="large" onClick={this.onSetContainerEACL.bind(this)}>{t("translation:advanced.fs.eacl-btn-set")}</Button>
-                                                    </Col>
-                                                </Row>
-                                            </Col>
-                                        </Row>
-                                    </TabPane>
-                                    <TabPane tab={t("translation:advanced.fs.object-title")} key="5">
-                                        <Row>
-                                            <Col span={12}>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <Search
-                                                            placeholder={t("translation:advanced.fs.com-input-cid")}
-                                                            enterButton={t("translation:advanced.fs.com-btn-oid-query")}
-                                                            size="large"
-                                                            value={this.state.pcontainerId}
-                                                            onChange={this.handelChangeInput.bind(this, "pcontainerId")}
-                                                            onSearch={this.onListObject.bind(this)}
-                                                            style={{ width: '100%' }} />
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={ 12}>
-                                                        <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.OnGetObject.bind(this)} loading={true}/>
-                                                    </Col>
-                                                    <Col span={7}>
-                                                        <Button size="large" onClick={this.onDeleteObject.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button>
-                                                    </Col>
-                                                    <Col span={5}>
-                                                        <Switch checkedChildren={"单一"} unCheckedChildren={"关联"} defaultChecked onChange={this.switchChange.bind(this, !this.state.batchDelete)} size="large" />
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <TextArea rows={10} placeholder={"Object Info"} value={this.state.object.toString()}></TextArea>
-                                                </Row>
-                                            </Col>
-                                            <Col span={1 }></Col>
-                                            <Col span={11}>
-                                                <Row>
-                                                    <Col span={ 24}>
-                                                        <Tabs className="fs-title" defaultActiveKey="1" onChange={this.handelChange.bind(this, "objecttype")}>
-                                                            <TabPane tab={"普通对象"} key="1">
-                                                                <TextArea rows={10} placeholder={"Please input object data,data size【1K,2M】"} onChange={this.handelChangeInput.bind(this, "pobjectdata")} value={this.state.pobjectdata} prefix={<EditOutlined />} />
-                                                            </TabPane>
-                                                            <TabPane tab={"StorageGroup对象"} key="2">
-                                                                    <TextArea rows={10} placeholder={"Please input objectId,用_分割"} onChange={this.handelChangeInput.bind(this, "pobjectIds")} value={this.state.pobjectIds} prefix={<EditOutlined />} />
-                                                            </TabPane>
-                                                        </Tabs>
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col span={24}>
-                                                        <Row>
-                                                            <Col span={ 24}>
-                                                                <br/>
-                                                                <Button size="large" onClick={this.onPutObject.bind(this)}>{t("translation:advanced.fs.com-btn-create")}</Button>
-                                                            </Col>
-                                                        </Row>
-                                                    </Col>
-                                                </Row>
-                                            </Col>
+                        <Row gutter={[30, 0]} style={{ 'minHeight': 'calc( 100vh - 120px )' }}>
+                            <Col span={24} className="bg-white pv4">
+                                <PageHeader title={t('translation:advanced.fs.title')}></PageHeader>
+                                <div className="pa3">
+                                    <br />
+                                    <Row>
+                                        <Col span={12}>
+                                            <SelectItem items={accounts.map(accounts => accounts.address)} placeholder={t("translation:advanced.fs.com-select-account")} func={this.onListContainer.bind(this)} />
+                                        </Col>
+                                        <Col span={1}>
+                                        </Col>
+                                        <Col span={11}>
+                                            <SelectItem items={this.state.containerIds} placeholder={t("translation:advanced.fs.com-select-cid")} func={this.handelChange.bind(this, "pcontainerId")} />
+                                        </Col>
+                                    </Row>
+                                </div>
+                                <div className="pa3">
+                                    <Tabs className="fs-title" defaultActiveKey="1" onChange={this.tabParamterClean.bind(this)}>
+                                        <TabPane tab={t("translation:advanced.fs.node-title")} key="1">
+                                            <Row>
+                                                <Col span={24}>
+                                                    <Card title={t("translation:advanced.fs.node-epoch")}>
+                                                        <p><Statistic value={this.state.epoch} prefix={<RetweetOutlined />} /></p>
+                                                    </Card>
+                                                </Col>
                                             </Row>
-                                    </TabPane>
-                                    <TabPane tab={t("translation:advanced.fs.bigfile-title")} key="6">
-                                        <Row>
-                                            <Col span={12}>
-                                                <Search
-                                                    placeholder={t("translation:advanced.fs.com-input-cid")}
-                                                    enterButton={t("translation:advanced.fs.com-btn-oid-query")}
-                                                    size="large"
-                                                    value={this.state.pcontainerId}
-                                                    onChange={this.handelChangeInput.bind(this, "pcontainerId")}
-                                                    onSearch={this.onListObject.bind(this)}
-                                                    style={{ width: '100%' }} />
-                                            </Col>
-                                            <Col span={1}></Col>
-                                            <Col span={11}>
-                                                <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.handelChange.bind(this, "pobjectId")} />
-                                            </Col>
-                                        </Row>
-                                        <Row>
+                                            <Row>
+                                                <Col span={24}>
+                                                    <Card title={t("translation:advanced.fs.node-nodeinfo")} sytle={{ width: "100%" }}>
+                                                        <p>{"PublicKey:"}{this.state.nodeinfo.publicKey}</p>
+                                                        <p>{"Addresses:"}{JSON.stringify(this.state.nodeinfo.addresses)}</p>
+                                                        <p>{"State:"}{this.state.nodeinfo.state}</p>
+                                                    </Card>
+                                                </Col>
+                                            </Row>
+                                        </TabPane>
+                                        <TabPane tab={t("translation:advanced.fs.account-title")} key="2">
+                                            <Row>
+                                                <Col span={15}>
+                                                    <p size="large">{"Balance:"}{this.state.balance.toString()}{" gas"}</p>
+                                                </Col>
+                                                <Col span={5}>
+
+                                                </Col>
+                                                <Col span={4}>
+                                                    <Button size="large" onClick={this.onAccountBalance.bind(this)}>{t("translation:advanced.fs.com-btn-query")}</Button>
+                                                </Col>
+                                            </Row>
+                                            <Row>
+                                                <Col span={15}>
+                                                    <Input placeholder={t("translation:advanced.fs.account-input-gascount")} value={this.state.pbalance} onChange={this.handelChangeInput.bind(this, "pbalance")} style={{ width: '100%' }} />
+                                                </Col>
+                                                <Col span={1}>
+
+                                                </Col>
+                                                <Col span={4}>
+                                                    <Button size="large" onClick={this.onAccountDeposite.bind(this)}>{t("translation:advanced.fs.account-btn-deposit")}</Button>
+
+                                                </Col>
+                                                <Col span={4}>
+                                                    <Button size="large" onClick={this.onAccountWithdraw.bind(this)}>{t("translation:advanced.fs.account-btn-withdraw")}</Button>
+
+                                                </Col>
+                                            </Row>
+                                        </TabPane>
+                                        <TabPane tab={t("translation:advanced.fs.container-title")} key="3">
+                                            <Row>
                                                 <Col span={12}>
-                                                    <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-uploadloadpath")} value={this.state.uploadpath} onChange={this.handelChangeInput.bind(this,"uploadpath")} style={{ width: "45%" }} /><Button icon={<UploadOutlined />} onClick={this.selectFile.bind(this, 1)} style={{ width: "55%" }}>Select Upload File</Button>
-                                            </Col>
-                                            <Col span={1}></Col>
-                                            <Col span={11}>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Input placeholder={t("translation:advanced.fs.com-input-cid")} value={this.state.pcontainerId} onChange={this.handelChangeInput.bind(this, "pcontainerId")} style={{ width: '100%' }} />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={12}>
+                                                            <Button size="large" onClick={this.onGetContainer.bind(this)}>{t("translation:advanced.fs.com-btn-query")}</Button>
+                                                        </Col>
+                                                        <Col span={12}>
+                                                            <Button size="large" onClick={this.onDeleteContainer.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button>
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Card size="large" title="Container Info">
+                                                                <p prefix={<EditOutlined />} >{this.state.containerinfo.toString()}</p>
+                                                            </Card>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                                <Col span={1}>
+                                                </Col>
+                                                <Col span={11}>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Input placeholder={t("translation:advanced.fs.container-input-policy")} onChange={this.handelChangeInput.bind(this, "ppolicyString")} value={this.state.ppolicyString} style={{ width: '100%' }} size="large" />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Input placeholder={t("translation:advanced.fs.container-input-basicacl")} onChange={this.handelChangeInput.bind(this, "pbasicAcl")} value={this.state.pbasicAcl} style={{ width: '100%' }} size="large" />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Input placeholder={t("translation:advanced.fs.container-input-attributes")} onChange={this.handelChangeInput.bind(this, "pattributesString")} value={this.state.pattributesString} style={{ width: '100%' }} size="large" />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Button size="large" onClick={this.onPutContainer.bind(this)}>{t("translation:advanced.fs.com-btn-create")}</Button>
+
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Row>
+                                        </TabPane>
+                                        <TabPane tab={t("translation:advanced.fs.eacl-title")} key="4">
+                                            <Row>
+                                                <Col span={12}>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Search
+                                                                placeholder={t("translation:advanced.fs.com-input-cid")}
+                                                                enterButton={t("translation:advanced.fs.com-btn-query")}
+                                                                size="large"
+                                                                value={this.state.pcontainerId}
+                                                                onChange={this.handelChangeInput.bind(this, "pcontainerId")}
+                                                                onSearch={this.onGetContainerEACL.bind(this)}
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <TextArea rows={12} placeholder={"Container Eacl Info:"} value={this.state.eacl.toString()} prefix={<EditOutlined />} />
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                                <Col span={1}></Col>
+                                                <Col span={11}>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <TextArea rows={12} placeholder={"Please input eacl"} onChange={this.handelChangeInput.bind(this, "peaclString")} prefix={<EditOutlined />} />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <br />
+                                                            <Button size="large" onClick={this.onSetContainerEACL.bind(this)}>{t("translation:advanced.fs.eacl-btn-set")}</Button>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Row>
+                                        </TabPane>
+                                        <TabPane tab={t("translation:advanced.fs.object-title")} key="5">
+                                            <Row>
+                                                <Col span={12}>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Search
+                                                                placeholder={t("translation:advanced.fs.com-input-cid")}
+                                                                enterButton={t("translation:advanced.fs.com-btn-oid-query")}
+                                                                size="large"
+                                                                value={this.state.pcontainerId}
+                                                                onChange={this.handelChangeInput.bind(this, "pcontainerId")}
+                                                                onSearch={this.onListObject.bind(this)}
+                                                                style={{ width: '100%' }} />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={12}>
+                                                            <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.OnGetObject.bind(this)} loading={true} />
+                                                        </Col>
+                                                        <Col span={7}>
+                                                            <Button size="large" onClick={this.onDeleteObject.bind(this)}>{t("translation:advanced.fs.com-btn-delete")}</Button>
+                                                        </Col>
+                                                        <Col span={5}>
+                                                            <Switch checkedChildren={t("translation:advanced.fs.object-switch-single")} unCheckedChildren={t("translation:advanced.fs.object-switch-related")} defaultChecked onChange={this.switchChange.bind(this, !this.state.batchDelete)} size="large" />
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <TextArea rows={10} placeholder={"Object Info"} value={this.state.object.toString()}></TextArea>
+                                                    </Row>
+                                                </Col>
+                                                <Col span={1}></Col>
+                                                <Col span={11}>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Tabs className="fs-title" defaultActiveKey="1" onChange={this.handelChange.bind(this, "objecttype")}>
+                                                                <TabPane tab={t("translation:advanced.fs.object-objecttype-object")} key="1">
+                                                                    <TextArea rows={10} placeholder={"Please input object data,data size【1K,2M】"} onChange={this.handelChangeInput.bind(this, "pobjectdata")} value={this.state.pobjectdata} prefix={<EditOutlined />} />
+                                                                </TabPane>
+                                                                <TabPane tab={t("translation:advanced.fs.object-objecttype-storagegroup")} key="2">
+                                                                    <TextArea rows={10} placeholder={t("translation:advanced.fs.object-input-objectId")} onChange={this.handelChangeInput.bind(this, "pobjectIds")} value={this.state.pobjectIds} prefix={<EditOutlined />} />
+                                                                </TabPane>
+                                                            </Tabs>
+                                                        </Col>
+                                                    </Row>
+                                                    <Row>
+                                                        <Col span={24}>
+                                                            <Row>
+                                                                <Col span={24}>
+                                                                    <br />
+                                                                    <Button size="large" onClick={this.onPutObject.bind(this)}>{t("translation:advanced.fs.com-btn-create")}</Button>
+                                                                </Col>
+                                                            </Row>
+                                                        </Col>
+                                                    </Row>
+                                                </Col>
+                                            </Row>
+                                        </TabPane>
+                                        <TabPane tab={t("translation:advanced.fs.bigfile-title")} key="6">
+                                            <Row>
+                                                <Col span={12}>
+                                                    <Search
+                                                        placeholder={t("translation:advanced.fs.com-input-cid")}
+                                                        enterButton={t("translation:advanced.fs.com-btn-oid-query")}
+                                                        size="large"
+                                                        value={this.state.pcontainerId}
+                                                        onChange={this.handelChangeInput.bind(this, "pcontainerId")}
+                                                        onSearch={this.onListObject.bind(this)}
+                                                        style={{ width: '100%' }} />
+                                                </Col>
+                                                <Col span={1}></Col>
+                                                <Col span={11}>
+                                                    <SelectItem items={this.state.objectIds} placeholder={t("translation:advanced.fs.com-select-oid")} func={this.handelChange.bind(this, "pobjectId")} />
+                                                </Col>
+                                            </Row>
+                                            <Row>
+                                                <Col span={12}>
+                                                    <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-uploadloadpath")} value={this.state.uploadpath} onChange={this.handelChangeInput.bind(this, "uploadpath")} style={{ width: "45%" }} /><Button icon={<UploadOutlined />} onClick={this.selectFile.bind(this, 1)} style={{ width: "55%" }}>Select Upload File</Button>
+                                                </Col>
+                                                <Col span={1}></Col>
+                                                <Col span={11}>
                                                     <Input type="txt" placeholder={t("translation:advanced.fs.bigfile-input-downloadpath")} value={this.state.downloadpath} onChange={this.handelChangeInput.bind(this, "downloadpath")} style={{ width: "45%" }} /><Button icon={<DownloadOutlined />} onClick={this.selectFile.bind(this, -1)} style={{ width: "55%" }}>Select DownLoad Seed</Button>
-                                            </Col>
-                                        </Row>
-                                        <Row>
+                                                </Col>
+                                            </Row>
+                                            <Row>
                                                 <Col span={11}>
                                                     <Button shape="dashed" size="large" onClick={this.onUploadFile.bind(this, -1, this.state.pcontainerId, this.state.uploadpath, new Date().getTime())} style={{ width: "45%" }}>{t("translation:advanced.fs.bigfile-btn-upload")}</Button>
-                                            </Col>
-                                            <Col span={ 2}></Col>
+                                                </Col>
+                                                <Col span={2}></Col>
                                                 <Col span={11}>
                                                     <Button shape="dashed" size="large" onClick={this.onDownloadFile.bind(this, -1, this.state.pcontainerId, this.state.pobjectId, this.state.downloadpath, new Date().getTime())} style={{ width: "45%" }}>{t("translation:advanced.fs.bigfile-btn-download")}</Button>
-                                            </Col>
-                                        </Row>
-                                        <Row>
-                                            <Col span={24}>
-                                                <UploadDownloadTaskList data={this.state.tasks} func1={this.onUploadFile} func2={this.onDownloadFile} style={{ width: "100%" }} />
-                                            </Col>
-                                        </Row>
-                                    </TabPane>
-                                </Tabs>
-                            </div>
-                        </Col>
+                                                </Col>
+                                            </Row>
+                                            <Row>
+                                                <Col span={24}>
+                                                    <UploadDownloadTaskList data={this.state.tasks} func1={this.onUploadFile} func2={this.onDownloadFile} style={{ width: "100%" }} />
+                                                </Col>
+                                            </Row>
+                                        </TabPane>
+                                    </Tabs>
+                                </div>
+                            </Col>
                         </Row>
                     </Spin>
                 </Content>
@@ -1005,8 +1002,8 @@ const SelectItem = ({ items, placeholder, func }) => {
             className="multiadd"
             showSearch
             optionFilterProp="children"
-            filterOption={(input, option) => 
-                option.props.children[1].toLowerCase().indexOf(input.toLowerCase()) >= 0  
+            filterOption={(input, option) =>
+                option.props.children[1].toLowerCase().indexOf(input.toLowerCase()) >= 0
             }
             filterSort={(optionA, optionB) =>
                 optionA.children[1].toLowerCase().localeCompare(optionB.children[1].toLowerCase())
@@ -1022,7 +1019,7 @@ const SelectItem = ({ items, placeholder, func }) => {
         </Select>)
 }
 
-const UploadDownloadTaskList = ({ data, func1, func2}) => {
+const UploadDownloadTaskList = ({ data, func1, func2 }) => {
     var _data = data;
     return (<List
         itemLayout="horizontal"
@@ -1085,11 +1082,11 @@ const ModalSuccess = (data, title) => {
 
 const Loading = (show) => {
     return (
-        <Spin tip="Loading..." spinning={ show}>
-         <Alert
-            message="Alert message title"
-            description="Further details about the context of this alert."
-            type="info"
-        />
-    </Spin>)
+        <Spin tip="Loading..." spinning={show}>
+            <Alert
+                message="Alert message title"
+                description="Further details about the context of this alert."
+                type="info"
+            />
+        </Spin>)
 }
