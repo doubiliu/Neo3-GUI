@@ -95,7 +95,7 @@ class Fs extends React.Component {
             .then((response) => {
                 var _data = response.data.result;
                 this.setState({ epoch: _data });
-                console.log("data:" + _data);
+                //console.log("data:" + _data);
                 return;
             })
             .catch(function (error) {
@@ -120,7 +120,7 @@ class Fs extends React.Component {
                     return;
                 } else if (_data.msgType === 3) {
                     var _data = response.data.result;
-                    console.log(_data);
+                    //console.log(_data);
                     this.setState({ nodeinfo: _data });
                     return;
                 }
@@ -556,7 +556,7 @@ class Fs extends React.Component {
         })
             .then((response) => {
                 var _data = response.data;
-                console.log(_data);
+                //console.log(_data);
                 if (_data.msgType === -1) {
                     return;
                 } else if (_data.msgType === 3) {
