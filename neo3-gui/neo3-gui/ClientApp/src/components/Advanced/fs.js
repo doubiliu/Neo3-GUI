@@ -487,15 +487,15 @@ class Fs extends React.Component {
     }
 
     //relate file
-    onUploadFile = (taskId, timestamp) => {
+    onUploadFile = (taskId, containerId, uploadpath, timestamp) => {
         const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": 1,
             "method": "OnUploadFile",
             "params": {
                 "taskId": taskId,
-                "containerId": this.state.pcontainerId,
-                "filePath": this.state.uploadpath,
+                "containerId": containerId,//this.state.pcontainerId,
+                "filePath": uploadpath,//this.state.uploadpath,
                 "paccount": this.state.paccount,
                 "timestamp": timestamp,
             }
@@ -516,16 +516,16 @@ class Fs extends React.Component {
             });
     }
 
-    onDownloadFile = (taskId, timestamp) => {
+    onDownloadFile = (taskId, containerId, objectId, downloadpath,timestamp) => {
         const { t } = this.props;
         axios.post('http://localhost:8081', {
             "id": 1,
             "method": "OnDownloadFile",
             "params": {
                 "taskId": taskId,
-                "containerId": this.state.pcontainerId,
-                "objectId": this.state.pobjectId,
-                "filePath": this.state.downloadpath,
+                "containerId": containerId,//this.state.pcontainerId,
+                "objectId": objectId,//this.state.pobjectId,
+                "filePath": downloadpath,//this.state.downloadpath,
                 "paccount": this.state.paccount,
                 "timestamp": timestamp,
             }
@@ -960,12 +960,12 @@ class Fs extends React.Component {
                                             </Col>
                                         </Row>
                                         <Row>
-                                            <Col span={11}>
-                                                <Button shape="dashed" size="large" onClick={this.onUploadFile.bind(this, -1, new Date().getTime())} style={{ width: "45%" }}>{t("translation:advanced.fs.bigfile-btn-upload")}</Button>
+                                                <Col span={11}>
+                                                    <Button shape="dashed" size="large" onClick={this.onUploadFile.bind(this, -1, this.state.pcontainerId, this.state.uploadpath, new Date().getTime())} style={{ width: "45%" }}>{t("translation:advanced.fs.bigfile-btn-upload")}</Button>
                                             </Col>
                                             <Col span={ 2}></Col>
-                                            <Col span={11}>
-                                                <Button shape="dashed" size="large" onClick={this.onDownloadFile.bind(this, -1, new Date().getTime())} style={{ width: "45%" }}>{t("translation:advanced.fs.bigfile-btn-download")}</Button>
+                                                <Col span={11}>
+                                                    <Button shape="dashed" size="large" onClick={this.onDownloadFile.bind(this, -1, this.state.pcontainerId, this.state.pobjectId, this.state.downloadpath, new Date().getTime())} style={{ width: "45%" }}>{t("translation:advanced.fs.bigfile-btn-download")}</Button>
                                             </Col>
                                         </Row>
                                         <Row>
@@ -1047,7 +1047,7 @@ const UploadDownloadTaskList = ({ data, func1, func2}) => {
                         <Col span={1}>
                         </Col>
                         <Col span={4}>
-                            <Button size="small" hidden={item.flag != -1} onClick={() => { item.tasktype == 1 ? func1(item.taskId, item.timeStamp) : func2(item.taskId, item.timeStamp) }}>{"Again"}</Button>
+                            <Button size="small" hidden={item.flag != -1} onClick={() => { item.tasktype == 1 ? func1(item.taskId, item.containerId, item.filePath, item.timeStamp) : func2(item.taskId, item.containerId, item.objectId, item.fileName, item.timeStamp) }}>{"Again"}</Button>
                         </Col>
                     </Row>
                     <Progress showInfo percent={(1.0 * item.current / item.total * 100).toFixed(2)} status={item.flag == 0 ? "active" : item.flag == 1 ? "success" : "exception"} style={{ width: '90%' }} />

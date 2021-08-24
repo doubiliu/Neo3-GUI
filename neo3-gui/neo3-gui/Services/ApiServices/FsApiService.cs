@@ -505,7 +505,7 @@ namespace Neo.Services.ApiServices
         ////relate file upload/download
         public async Task<object> OnUploadFile(int taskId, string containerId, string filePath, string timestamp, string paccount = null)
         {
-            if(TaskList.Select(p=>p.Value.Flag==0).Count()>5) return Error(ErrorCode.TooMuchTask);
+            if(TaskList.Where(p=>p.Value.Flag==0).Count()>5) return Error(ErrorCode.TooMuchTask);
             var err = CheckAndParseAccount(paccount, out UInt160 account, out ECDsa key);
             if (err is not null) return err;
             ContainerID cid = ParseContainerID(containerId, out var error);
@@ -552,7 +552,7 @@ namespace Neo.Services.ApiServices
 
         public async Task<object> OnDownloadFile(int taskId, string containerId, string objectId, string filePath, string paccount = null)
         {
-            if (TaskList.Select(p => p.Value.Flag == 0).Count() > 5) return Error(ErrorCode.TooMuchTask);
+            if (TaskList.Where(p => p.Value.Flag == 0).Count() > 5) return Error(ErrorCode.TooMuchTask);
             var err = CheckAndParseAccount(paccount, out UInt160 account, out ECDsa key);
             if (err is not null) return err;
             if (filePath is null || filePath == "") return Error(ErrorCode.InvalidPara);
@@ -672,6 +672,7 @@ namespace Neo.Services.ApiServices
                             subObjectIDs[threadIndex + i * taskCounts] = obj.ObjectId;
                             Console.WriteLine($"The object put request has been submitted,ObjectID:{obj.ObjectId.String()},degree of completion:{uploadProcess.Add((ulong)obj.Header.PayloadLength)}/{FileLength}");
                         }
+                        else break;
                         i++;
                         Thread.Sleep(500);
                     }
@@ -743,7 +744,7 @@ namespace Neo.Services.ApiServices
                             byte[] downedData = new byte[tempreadstream.Length];
                             tempreadstream.Read(downedData, 0, downedData.Length);
                             var objheader = OnGetObjectHeaderInternal(internalClient, cid, oid);
-                            if (objheader is null) continue;
+                            if (objheader is null) return;
                             if (downedData.Sha256().SequenceEqual(objheader.PayloadChecksum.Sum.ToByteArray()))
                             {
                                 Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)downedData.Length)}/{fileLength}");
