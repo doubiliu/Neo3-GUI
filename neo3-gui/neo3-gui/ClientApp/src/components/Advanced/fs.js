@@ -761,11 +761,6 @@ class Fs extends React.Component {
                                     <TabPane tab={t("translation:advanced.fs.account-title")} key="2">
                                         <Row>
                                             <Col span={15}>
-                                                <Input placeholder={t("translation:advanced.fs.account-input-address")} value={this.state.paccount} onChange={this.handelChangeInput.bind(this, "paccount")} style={{ width: '100%' }} />
-                                            </Col>
-                                        </Row>
-                                        <Row>
-                                            <Col span={15}>
                                                 <p size="large">{"Balance:"}{this.state.balance.toString()}{" gas"}</p>
                                             </Col>
                                             <Col span={ 5}>
