@@ -30,7 +30,6 @@ import { Copy } from '../copy';
 import { remote } from "electron";
 
 const { dialog } = remote;
-
 const { Option } = Select;
 const { Content } = Layout;
 const { TabPane } = Tabs;
@@ -487,61 +486,69 @@ class Fs extends React.Component {
     //relate file
     onUploadFile = (taskId, containerId, uploadpath, timestamp) => {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": 1,
-            "method": "OnUploadFile",
-            "params": {
-                "taskId": taskId,
-                "containerId": containerId,
-                "filePath": uploadpath,
-                "paccount": this.state.paccount,
-                "timestamp": timestamp,
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                console.log(_data);
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.bigfile-upload-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(null, t("translation:advanced.fs.bigfile-upload-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": 1,
+                "method": "OnUploadFile",
+                "params": {
+                    "taskId": taskId,
+                    "containerId": containerId,
+                    "filePath": uploadpath,
+                    "paccount": this.state.paccount,
+                    "timestamp": timestamp,
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    console.log(_data);
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.bigfile-upload-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(null, t("translation:advanced.fs.bigfile-upload-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        });
     }
 
     onDownloadFile = (taskId, containerId, objectId, downloadpath, timestamp) => {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": 1,
-            "method": "OnDownloadFile",
-            "params": {
-                "taskId": taskId,
-                "containerId": containerId,
-                "objectId": objectId,
-                "filePath": downloadpath,
-                "paccount": this.state.paccount,
-                "timestamp": timestamp,
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                console.log(_data);
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.bigfile-download-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(null, t("translation:advanced.fs.bigfile-download-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": 1,
+                "method": "OnDownloadFile",
+                "params": {
+                    "taskId": taskId,
+                    "containerId": containerId,
+                    "objectId": objectId,
+                    "filePath": downloadpath,
+                    "paccount": this.state.paccount,
+                    "timestamp": timestamp,
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    console.log(_data);
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.bigfile-download-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(null, t("translation:advanced.fs.bigfile-download-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        });
     }
 
 
