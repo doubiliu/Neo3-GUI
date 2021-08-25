@@ -50,12 +50,12 @@ namespace Neo.Services.ApiServices
             if (NoWallet()) return Error(ErrorCode.WalletNotOpen);
             var account = CurrentWallet.GetAccounts().Where(p => !p.WatchOnly).ToArray()[0].ScriptHash;
             var key = CurrentWallet.GetAccount(account).GetKey().Export().LoadWif();
-/*            Cryptography.ECC.ECPoint pk = ParseEcpoint(paccount, out var err);
-            if (err is not null) return err;*/
+            /*            Cryptography.ECC.ECPoint pk = ParseEcpoint(paccount, out var err);
+                        if (err is not null) return err;*/
             var ownerID = OwnerID.FromScriptHash(paccount.ToScriptHash());
             using var client = OnCreateClientInternal(key);
             if (client is null) return Error(ErrorCode.CreateClientFault);
-            if (OnGetBalanceInternal(client, key, ownerID,out FileStorage.API.Accounting.Decimal result))
+            if (OnGetBalanceInternal(client, key, ownerID, out FileStorage.API.Accounting.Decimal result))
             {
                 Console.WriteLine($"Fs current account :{paccount.ToScriptHash()}, balance:{(result.Value == 0 ? 0 : result)}");
                 return new Neo.BigDecimal(new BigInteger(result.Value), NativeContract.GAS.Decimals);
@@ -76,7 +76,7 @@ namespace Neo.Services.ApiServices
             DataCache snapshot = Helpers.GetDefaultSnapshot();
             using var client = OnCreateClientInternal(key);
             if (client is null) return Error(ErrorCode.CreateClientFault);
-            if (!OnGetBalanceInternal(client, key, null,out FileStorage.API.Accounting.Decimal balance)) return Error(ErrorCode.GetBalanceFault); ;
+            if (!OnGetBalanceInternal(client, key, null, out FileStorage.API.Accounting.Decimal balance)) return Error(ErrorCode.GetBalanceFault); ;
             if (balance.Value < amount * NativeContract.GAS.Decimals)
             {
                 Console.WriteLine($"Fs current account balance is not enough");
@@ -368,7 +368,7 @@ namespace Neo.Services.ApiServices
         {
             var err = CheckAndParseAccount(paccount, out _, out ECDsa key);
             if (err is not null) return err;
-            if (pdata.Length > 2048*1000 || pdata.Length < 1024)
+            if (pdata.Length > 2048 * 1000 || pdata.Length < 1024)
             {
                 Console.WriteLine("The data length out of range");
                 return Error(ErrorCode.InvalidPara);
@@ -441,12 +441,13 @@ namespace Neo.Services.ApiServices
             {
                 List<string> subObjectIDs = new List<string>();
                 var sg = StorageGroup.Parser.ParseFrom(obj.Payload.ToByteArray());
-                foreach (var m in sg.Members) {
+                foreach (var m in sg.Members)
+                {
                     subObjectIDs.Add(m.String());
                 }
                 string.Join("_", subObjectIDs);
                 JObject @object = new JObject();
-                @object["subIds"]= string.Join("_", subObjectIDs);
+                @object["subIds"] = string.Join("_", subObjectIDs);
                 result.Add(@object);
             }
             Console.WriteLine($"Object info:{result}");
@@ -470,7 +471,7 @@ namespace Neo.Services.ApiServices
                 List<ObjectID> objs = client.SearchObject(cid, filter, context: source.Token).Result;
                 source.Cancel();
                 Console.WriteLine($"list object,cid:{cid}");
-                objs.ForEach(p => Console.WriteLine($"ObjectId:{p.ToString()}"));
+                objs.ForEach(p => Console.WriteLine($"ObjectId:{p.String()}"));
                 return objs.Select(p => p.String()).ToList();
             }
             catch (Exception e)
@@ -502,20 +503,22 @@ namespace Neo.Services.ApiServices
             return Error(ErrorCode.PutStorageGroupObjectFault);
         }
 
-        ////relate file upload/download
+        //relate file upload/download
         public async Task<object> OnUploadFile(int taskId, string containerId, string filePath, string timestamp, string paccount = null)
         {
-            if(TaskList.Where(p=>p.Value.Flag==0).Count()>5) return Error(ErrorCode.TooMuchTask);
+            if (TaskList.Where(p => p.Value.Flag == 0).Count() > 5) return Error(ErrorCode.TooMuchTask);
             var err = CheckAndParseAccount(paccount, out UInt160 account, out ECDsa key);
             if (err is not null) return err;
             ContainerID cid = ParseContainerID(containerId, out var error);
             if (error is not null) return error;
             FileInfo fileInfo = null;
-            try {
+            try
+            {
                 fileInfo = new FileInfo(filePath);
                 if (!fileInfo.Exists) return Error(ErrorCode.AddressNotFound);
             }
-            catch {
+            catch
+            {
                 return Error(ErrorCode.AddressNotFound);
             }
             var FileLength = fileInfo.Length;
@@ -573,7 +576,6 @@ namespace Neo.Services.ApiServices
             }
             var sg = StorageGroup.Parser.ParseFrom(obj.Payload.ToByteArray());
             totalDataSize = sg.ValidationDataSize;
-            //DownLoadProcess.Init(totalDataSize);
             Console.WriteLine($"Download file index successfully");
             Console.WriteLine($"File objects size: {totalDataSize}");
             Console.WriteLine($"File subobject list:");
@@ -623,7 +625,7 @@ namespace Neo.Services.ApiServices
         {
             FileInfo file = new FileInfo(filePath);
             if (!file.Exists) return Error(ErrorCode.FileNotExist);
-            return  UTF8Encoding.UTF8.GetString(OnGetFileInternal(filePath, 0, (int)file.Length, file.Length));
+            return UTF8Encoding.UTF8.GetString(OnGetFileInternal(filePath, 0, (int)file.Length, file.Length));
         }
 
         private WsError OnUploadFileInternal(int taskId, ContainerID cid, string filePath, ECDsa key, long PackCount, int PackSize, long FileLength, string fileName, string timeStamp)
@@ -663,10 +665,9 @@ namespace Neo.Services.ApiServices
                     int i = 0;
                     while (threadIndex + i * taskCounts < subObjectIDs.Length)
                     {
-                        byte[] data = OnGetFileInternal(filePath, (threadIndex + i * taskCounts) * PackSize, PackSize, FileLength);
+                        byte[] data = OnGetFileInternal(filePath, ((long)threadIndex + (long)i * (long)taskCounts) * (long)PackSize, PackSize, FileLength);
                         Object obj = OnCreateObjectInternal(cid, key, data, ObjectType.Regular, attributes);
                         //check has upload;                        
-                        //var objheader = OnGetObjectHeaderInternal(internalClient, cid, obj.ObjectId, false);
                         if (subObjectIDs[threadIndex + i * taskCounts] is not null || OnPutObjectInternal(internalClient, obj, internalSession))
                         {
                             subObjectIDs[threadIndex + i * taskCounts] = obj.ObjectId;
@@ -694,8 +695,8 @@ namespace Neo.Services.ApiServices
             var obj = OnCreateStorageGroupObjectInternal(client, key, cid, subObjectIDs, attributes);
             if (OnPutObjectInternal(client, obj, session))
             {
-                Interlocked.Exchange(ref uploadProcess.ObjectId, obj.ObjectId.String());    
-                OnWriteFileInternal(new FileInfo(filePath).Directory.FullName+"\\" + $"{obj.ObjectId.String()}_{timeStamp}.seed", UTF8Encoding.UTF8.GetBytes($"{cid.String()}_{obj.ObjectId.String()}"));
+                Interlocked.Exchange(ref uploadProcess.ObjectId, obj.ObjectId.String());
+                OnWriteFileInternal(new FileInfo(filePath).Directory.FullName + "\\" + $"{obj.ObjectId.String()}_{timeStamp}.seed", UTF8Encoding.UTF8.GetBytes($"{cid.String()}_{obj.ObjectId.String()}"));
                 uploadProcess.TimeSpent = stopWatch.Elapsed;
                 uploadProcess.Success();
                 Console.WriteLine("File index upload successfully");
@@ -721,7 +722,7 @@ namespace Neo.Services.ApiServices
             }
             else
             {
-                workDirectory = parentDirectory.CreateSubdirectory(taskId.ToString()+"_"+ downloadprocess.TimeStamp);
+                workDirectory = parentDirectory.CreateSubdirectory(taskId.ToString() + "_" + downloadprocess.TimeStamp);
             }
             var taskCounts = 10;
             var tasks = new Task[taskCounts];
@@ -918,7 +919,7 @@ namespace Neo.Services.ApiServices
             }
         }
 
-        private Neo.FileStorage.API.Object.Object OnCreateStorageGroupObjectInternal(Client client, ECDsa key, ContainerID cid, ObjectID[] oids, FileStorage.API.Object.Header.Types.Attribute[] attributes = null)
+        private Object OnCreateStorageGroupObjectInternal(Client client, ECDsa key, ContainerID cid, ObjectID[] oids, FileStorage.API.Object.Header.Types.Attribute[] attributes = null)
         {
             byte[] tzh = null;
             ulong size = 0;
@@ -947,9 +948,9 @@ namespace Neo.Services.ApiServices
             return OnCreateObjectInternal(cid, key, sg.ToByteArray(), ObjectType.StorageGroup, attributes);
         }
 
-        private Neo.FileStorage.API.Object.Object OnCreateObjectInternal(ContainerID cid, ECDsa key, byte[] data, ObjectType objectType, FileStorage.API.Object.Header.Types.Attribute[] attributes = null)
+        private Object OnCreateObjectInternal(ContainerID cid, ECDsa key, byte[] data, ObjectType objectType, FileStorage.API.Object.Header.Types.Attribute[] attributes = null)
         {
-            var obj = new Neo.FileStorage.API.Object.Object
+            var obj = new Object
             {
                 Header = new FileStorage.API.Object.Header
                 {
@@ -977,7 +978,7 @@ namespace Neo.Services.ApiServices
             return obj;
         }
 
-        private Neo.FileStorage.API.Object.Object OnGetObjectHeaderInternal(Client client, ContainerID cid, ObjectID oid, bool logFlag = true)
+        private Object OnGetObjectHeaderInternal(Client client, ContainerID cid, ObjectID oid, bool logFlag = true)
         {
             using var source = new CancellationTokenSource();
             source.CancelAfter(TimeSpan.FromMinutes(1));
@@ -993,13 +994,13 @@ namespace Neo.Services.ApiServices
             }
             catch (Exception e)
             {
-                if (logFlag) Console.WriteLine($"Get object header fail,objectId:{oid.ToString()},error:{e}");
+                if (logFlag) Console.WriteLine($"Get object header fail,objectId:{oid.String()},error:{e}");
                 source.Cancel();
                 return null;
             }
         }
 
-        private Neo.FileStorage.API.Object.Object OnGetObjectInternal(Client client, ContainerID cid, ObjectID oid)
+        private Object OnGetObjectInternal(Client client, ContainerID cid, ObjectID oid)
         {
             using var source = new CancellationTokenSource();
             source.CancelAfter(TimeSpan.FromMinutes(1));
@@ -1021,7 +1022,7 @@ namespace Neo.Services.ApiServices
             }
         }
 
-        private bool OnPutObjectInternal(Client client, Neo.FileStorage.API.Object.Object obj, SessionToken session = null)
+        private bool OnPutObjectInternal(Client client, Object obj, SessionToken session = null)
         {
             if (session is null)
                 session = OnCreateSessionInternal(client);
@@ -1106,21 +1107,6 @@ namespace Neo.Services.ApiServices
                 error = Error(ErrorCode.InvalidPara);
             }
             return oid;
-        }
-
-        private Cryptography.ECC.ECPoint ParseEcpoint(string account, out WsError error)
-        {
-            Cryptography.ECC.ECPoint pk = null;
-            error = null;
-            try
-            {
-                pk = Cryptography.ECC.ECPoint.Parse(account, Cryptography.ECC.ECCurve.Secp256r1);
-            }
-            catch
-            {
-                error = Error(ErrorCode.InvalidPara);
-            }
-            return pk;
         }
 
         private class Process

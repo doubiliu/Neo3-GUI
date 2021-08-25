@@ -776,11 +776,9 @@ class Fs extends React.Component {
                                                 </Col>
                                                 <Col span={4}>
                                                     <Button size="large" onClick={this.onAccountDeposite.bind(this)}>{t("translation:advanced.fs.account-btn-deposit")}</Button>
-
                                                 </Col>
                                                 <Col span={4}>
                                                     <Button size="large" onClick={this.onAccountWithdraw.bind(this)}>{t("translation:advanced.fs.account-btn-withdraw")}</Button>
-
                                                 </Col>
                                             </Row>
                                         </TabPane>
@@ -1079,14 +1077,3 @@ const ModalSuccess = (data, title) => {
         okText: <Trans>button.ok</Trans>
     });
 };
-
-const Loading = (show) => {
-    return (
-        <Spin tip="Loading..." spinning={show}>
-            <Alert
-                message="Alert message title"
-                description="Further details about the context of this alert."
-                type="info"
-            />
-        </Spin>)
-}
