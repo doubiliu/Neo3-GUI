@@ -130,237 +130,268 @@ class Fs extends React.Component {
     //relate account
     onAccountBalance() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnAccountBalance",
-            "params": {
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.account-query-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    var _data = response.data.result;
-                    this.setState({ balance: _data });
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnAccountBalance",
+                "params": {
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.account-query-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        var _data = response.data.result;
+                        this.setState({ balance: _data, loading: false });
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        });
     }
 
     onAccountDeposite() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnAccountDeposite",
-            "params": {
-                "pamount": this.state.pbalance,
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.account-deposit-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, t("translation:advanced.fs.account-deposit-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnAccountDeposite",
+                "params": {
+                    "pamount": this.state.pbalance,
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.account-deposit-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(_data, t("translation:advanced.fs.account-deposit-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        });
     }
 
     onAccountWithdraw() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnAccountWithdraw",
-            "params": {
-                "pamount": this.state.pbalance,
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.account-withdraw-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, t("translation:advanced.fs.account-withdraw-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnAccountWithdraw",
+                "params": {
+                    "pamount": this.state.pbalance,
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.account-withdraw-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(_data, t("translation:advanced.fs.account-withdraw-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        });
     }
 
     //relate container
     onGetContainer() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnGetContainer",
-            "params": {
-                "containerId": this.state.pcontainerId,
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                console.log("onGetContainer");
-                console.log(_data);
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.container-query-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    this.setState({ containerinfo: JSON.stringify(response.data.result) });
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnGetContainer",
+                "params": {
+                    "containerId": this.state.pcontainerId,
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    console.log("onGetContainer");
+                    console.log(_data);
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.container-query-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ containerinfo: JSON.stringify(response.data.result), loading: false });
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        });
     }
 
     onListContainer = value => {
         const { t } = this.props;
         this.state.paccount = value;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnListContainer",
-            "params": {
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    this.state.containerIds = [];
-                    this.setState({ containerIds: [] });
-                    ModalError(_data, t("translation:advanced.fs.container-list-query-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    console.log(_data.result);
-                    this.setState({ containerIds: _data.result });
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnListContainer",
+                "params": {
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.state.containerIds = [];
+                        this.setState({ containerIds: [], loading: false });
+                        ModalError(_data, t("translation:advanced.fs.container-list-query-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        console.log(_data.result);
+                        this.setState({ containerIds: _data.result, loading: false});
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        });
     }
 
     onPutContainer() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnPutContainer",
-            "params": {
-                "policyString": this.state.ppolicyString,
-                "basicAcl": this.state.pbasicAcl,
-                "attributesString": this.state.pattributesString,
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.container-put-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, t("translation:advanced.fs.container-put-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnPutContainer",
+                "params": {
+                    "policyString": this.state.ppolicyString,
+                    "basicAcl": this.state.pbasicAcl,
+                    "attributesString": this.state.pattributesString,
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.container-put-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(_data, t("translation:advanced.fs.container-put-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     onDeleteContainer() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnDeleteContainer",
-            "params": {
-                "containerId": this.state.pcontainerId,
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.container-delete-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, t("translation:advanced.fs.container-delete-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnDeleteContainer",
+                "params": {
+                    "containerId": this.state.pcontainerId,
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.container-delete-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(_data, t("translation:advanced.fs.container-delete-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     //relate eacl
     onGetContainerEACL() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnGetContainerEACL",
-            "params": {
-                "containerId": this.state.pcontainerId,
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.eacl-query-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    var _data = response.data.result;
-                    this.setState({ eacl: JSON.stringify(_data) });
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnGetContainerEACL",
+                "params": {
+                    "containerId": this.state.pcontainerId,
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.eacl-query-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        var _data = response.data.result;
+                        this.setState({ eacl: JSON.stringify(_data), loading: false });
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     onSetContainerEACL() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnSetContainerEACL",
-            "params": {
-                "paccount": this.state.paccount,
-                "eaclString": this.state.peaclString
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.eacl-set-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, t("translation:advanced.fs.eacl-set-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnSetContainerEACL",
+                "params": {
+                    "paccount": this.state.paccount,
+                    "eaclString": this.state.peaclString
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.eacl-set-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(_data, t("translation:advanced.fs.eacl-set-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     //relate object
@@ -398,89 +429,101 @@ class Fs extends React.Component {
 
     onListObject() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnListObject",
-            "params": {
-                "containerId": this.state.pcontainerId,
-                "paccount": this.state.paccount
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.object-list-query-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    console.log(_data.result);
-                    this.setState({ objectIds: _data.result });
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnListObject",
+                "params": {
+                    "containerId": this.state.pcontainerId,
+                    "paccount": this.state.paccount
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.object-list-query-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        console.log(_data.result);
+                        this.setState({ loading: false });
+                        this.setState({ objectIds: _data.result });
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     onPutObject() {
         const { t } = this.props;
         var flag = this.state.objecttype;
-        axios.post('http://localhost:8081', flag == 1 ? {
-            "id": "1",
-            "method": "OnPutObject",
-            "params": {
-                "containerId": this.state.pcontainerId,
-                "pdata": this.state.pobjectdata,
-                "paccount": this.state.paccount
-            }
-        } : {
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', flag == 1 ? {
                 "id": "1",
-                "method": "OnStorageGroupObject",
+                "method": "OnPutObject",
                 "params": {
                     "containerId": this.state.pcontainerId,
-                    "pobjectIds": this.state.pobjectIds,
+                    "pdata": this.state.pobjectdata,
                     "paccount": this.state.paccount
                 }
-            })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, flag ? t("translation:advanced.fs.object-put-fault") : t("translation:advanced.fs.object-storagegroup-put-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, flag ? t("translation:advanced.fs.object-put-success") : t("translation:advanced.fs.object-storagegroup-put-success"));
-                    return;
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
+            } : {
+                    "id": "1",
+                    "method": "OnStorageGroupObject",
+                    "params": {
+                        "containerId": this.state.pcontainerId,
+                        "pobjectIds": this.state.pobjectIds,
+                        "paccount": this.state.paccount
+                    }
+                })
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, flag ? t("translation:advanced.fs.object-put-fault") : t("translation:advanced.fs.object-storagegroup-put-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(_data, flag ? t("translation:advanced.fs.object-put-success") : t("translation:advanced.fs.object-storagegroup-put-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     onDeleteObject() {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "id": "1",
-            "method": "OnDeleteObject",
-            "params": {
-                "containerId": this.state.pcontainerId,
-                "pobjectIds": this.state.batchDelete ? this.state.pobjectId + "_" + this.state.psubIds : this.state.pobjectId,
-                "paccount": this.state.paccount,
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                if (_data.msgType === -1) {
-                    ModalError(_data, t("translation:advanced.fs.object-delete-fault"));
-                    return;
-                } else if (_data.msgType === 3) {
-                    ModalSuccess(_data, t("translation:advanced.fs.object-delete-success"));
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "id": "1",
+                "method": "OnDeleteObject",
+                "params": {
+                    "containerId": this.state.pcontainerId,
+                    "pobjectIds": this.state.batchDelete ? this.state.pobjectId + "_" + this.state.psubIds : this.state.pobjectId,
+                    "paccount": this.state.paccount,
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        ModalError(_data, t("translation:advanced.fs.object-delete-fault"));
+                        return;
+                    } else if (_data.msgType === 3) {
+                        this.setState({ loading: false });
+                        ModalSuccess(_data, t("translation:advanced.fs.object-delete-success"));
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     //relate file
@@ -575,29 +618,33 @@ class Fs extends React.Component {
 
     onGetSeedFile = (filePath) => {
         const { t } = this.props;
-        axios.post('http://localhost:8081', {
-            "method": "OnGetFile",
-            "params": {
-                "filePath": filePath
-            }
-        })
-            .then((response) => {
-                var _data = response.data;
-                console.log(_data);
-                if (_data.msgType === -1) {
-                    return;
-                } else if (_data.msgType === 3) {
-                    var temp = _data.result.split("_");
-                    this.setState({
-                        pcontainerId: temp[0],
-                        objectIds: [temp[1]]
-                    });
-                    return;
+        this.setState({ loading: true }, () => {
+            axios.post('http://localhost:8081', {
+                "method": "OnGetFile",
+                "params": {
+                    "filePath": filePath
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then((response) => {
+                    var _data = response.data;
+                    console.log(_data);
+                    if (_data.msgType === -1) {
+                        this.setState({ loading: false });
+                        return;
+                    } else if (_data.msgType === 3) {
+                        var temp = _data.result.split("_");
+                        this.setState({
+                            pcontainerId: temp[0],
+                            objectIds: [temp[1]],
+                            loading: false
+                        });
+                        return;
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        })
     }
 
     handelChange = (name, value) => {
