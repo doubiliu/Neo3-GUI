@@ -582,7 +582,7 @@ namespace Neo.Services.ApiServices
             foreach (var m in sg.Members)
             {
                 subObjectIDs.Add(m);
-                Console.WriteLine($"subobjectId:{m.ToString()}");
+                Console.WriteLine($"subobjectId:{m.String()}");
             }
             string FileName = null;
             string Timestamp = null;
@@ -748,7 +748,8 @@ namespace Neo.Services.ApiServices
                             if (objheader is null) return;
                             if (downedData.Sha256().SequenceEqual(objheader.PayloadChecksum.Sum.ToByteArray()))
                             {
-                                Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)downedData.Length)}/{fileLength}");
+                                Console.WriteLine($"Download subobject successfully,objectId:{oid.String()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)downedData.Length)}/{fileLength}");
+                                i++;
                                 continue;
                             }
                             else
@@ -762,7 +763,7 @@ namespace Neo.Services.ApiServices
                         tempstream.Flush();
                         tempstream.Close();
                         tempstream.Dispose();
-                        Console.WriteLine($"Download subobject successfully,objectId:{oid.ToString()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)payload.Length)}/{fileLength}");
+                        Console.WriteLine($"Download subobject successfully,objectId:{oid.String()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)payload.Length)}/{fileLength}");
                         i++;
                     }
                 });

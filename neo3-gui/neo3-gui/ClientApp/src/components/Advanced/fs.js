@@ -265,7 +265,7 @@ class Fs extends React.Component {
                         return;
                     } else if (_data.msgType === 3) {
                         console.log(_data.result);
-                        this.setState({ containerIds: _data.result, loading: false});
+                        this.setState({ containerIds: _data.result, loading: false });
                         return;
                     }
                 })
