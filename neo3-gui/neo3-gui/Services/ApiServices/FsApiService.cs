@@ -553,7 +553,7 @@ namespace Neo.Services.ApiServices
             return uploadProcess.ToJson();
         }
 
-        public async Task<object> OnDownloadFile(int taskId, string containerId, string objectId, string filePath, string paccount = null)
+        public async Task<object> OnDownloadFile(int taskId, string containerId, string objectId, string filePath, string timestamp, string paccount = null)
         {
             if (TaskList.Where(p => p.Value.Flag == 0).Count() > 5) return Error(ErrorCode.TooMuchTask);
             var err = CheckAndParseAccount(paccount, out UInt160 account, out ECDsa key);
@@ -585,17 +585,15 @@ namespace Neo.Services.ApiServices
                 Console.WriteLine($"subobjectId:{m.String()}");
             }
             string FileName = null;
-            string Timestamp = null;
             obj.Attributes.ForEach(p =>
             {
                 if (p.Key == FileStorage.API.Object.Header.Types.Attribute.AttributeFileName) FileName = p.Value;
-                if (p.Key == FileStorage.API.Object.Header.Types.Attribute.AttributeTimestamp) Timestamp = p.Value;
             });
             Process downloadProcess = null;
             if (taskId < 0)
             {
                 taskId = Interlocked.Increment(ref TaskIndex);
-                downloadProcess = new Process(taskId, 0, containerId, objectId, FileName, filePath, totalDataSize, Timestamp, subObjectIDs.Count);
+                downloadProcess = new Process(taskId, 0, containerId, objectId, FileName, filePath, totalDataSize, timestamp, subObjectIDs.Count);
                 downloadProcess.SubObjectIds = subObjectIDs.ToArray();
                 TaskList.TryAdd(taskId, downloadProcess);
             }
