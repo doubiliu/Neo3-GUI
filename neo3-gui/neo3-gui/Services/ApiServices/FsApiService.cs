@@ -729,40 +729,47 @@ namespace Neo.Services.ApiServices
                 var threadIndex = index;
                 var task = new Task(() =>
                 {
-                    using var internalClient = OnCreateClientInternal(key);
-                    if (internalClient is null) return;
-                    int i = 0;
-                    while (threadIndex + i * taskCounts < downloadprocess.SubObjectIds.Length)
-                    {
-                        var oid = downloadprocess.SubObjectIds[threadIndex + i * taskCounts];
-                        string tempfilepath = workDirectory.FullName + "\\QS_" + downloadprocess.SubObjectIds[threadIndex + i * taskCounts].String();
-                        FileInfo tempfile = new FileInfo(tempfilepath);
-                        if (tempfile.Exists)
+                    try {
+
+                        using var internalClient = OnCreateClientInternal(key);
+                        if (internalClient is null) return;
+                        int i = 0;
+                        while (threadIndex + i * taskCounts < downloadprocess.SubObjectIds.Length)
                         {
-                            using FileStream tempreadstream = new FileStream(tempfilepath, FileMode.Open);
-                            byte[] downedData = new byte[tempreadstream.Length];
-                            tempreadstream.Read(downedData, 0, downedData.Length);
-                            var objheader = OnGetObjectHeaderInternal(internalClient, cid, oid);
-                            if (objheader is null) return;
-                            if (downedData.Sha256().SequenceEqual(objheader.PayloadChecksum.Sum.ToByteArray()))
+                            var oid = downloadprocess.SubObjectIds[threadIndex + i * taskCounts];
+                            string tempfilepath = workDirectory.FullName + "\\QS_" + downloadprocess.SubObjectIds[threadIndex + i * taskCounts].String();
+                            FileInfo tempfile = new FileInfo(tempfilepath);
+                            if (tempfile.Exists)
                             {
-                                Console.WriteLine($"Download subobject successfully,objectId:{oid.String()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)downedData.Length)}/{fileLength}");
-                                i++;
-                                continue;
+                                using FileStream tempreadstream = new FileStream(tempfilepath, FileMode.Open);
+                                byte[] downedData = new byte[tempreadstream.Length];
+                                tempreadstream.Read(downedData, 0, downedData.Length);
+                                var objheader = OnGetObjectHeaderInternal(internalClient, cid, oid);
+                                if (objheader is null) return;
+                                if (downedData.Sha256().SequenceEqual(objheader.PayloadChecksum.Sum.ToByteArray()))
+                                {
+                                    Console.WriteLine($"Download subobject successfully,objectId:{oid.String()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)downedData.Length)}/{fileLength}");
+                                    i++;
+                                    continue;
+                                }
+                                else {
+                                    tempreadstream.Dispose();
+                                    tempfile.Delete();
+                                }
                             }
-                            else
-                                tempfile.Delete();
+                            using FileStream tempstream = new FileStream(tempfilepath, FileMode.Create, FileAccess.Write, FileShare.Write);
+                            var obj = OnGetObjectInternal(internalClient, cid, oid);
+                            if (obj is null) return;
+                            var payload = obj.Payload.ToByteArray();
+                            tempstream.Write(payload, 0, payload.Length);
+                            tempstream.Flush();
+                            tempstream.Close();
+                            tempstream.Dispose();
+                            Console.WriteLine($"Download subobject successfully,objectId:{oid.String()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)payload.Length)}/{fileLength}");
+                            i++;
                         }
-                        using FileStream tempstream = new FileStream(tempfilepath, FileMode.Create, FileAccess.Write, FileShare.Write);
-                        var obj = OnGetObjectInternal(internalClient, cid, oid);
-                        if (obj is null) return;
-                        var payload = obj.Payload.ToByteArray();
-                        tempstream.Write(payload, 0, payload.Length);
-                        tempstream.Flush();
-                        tempstream.Close();
-                        tempstream.Dispose();
-                        Console.WriteLine($"Download subobject successfully,objectId:{oid.String()},degree of completion:{Interlocked.Add(ref downloadprocess.Current, (ulong)payload.Length)}/{fileLength}");
-                        i++;
+                    } catch(Exception e){
+                        Console.WriteLine($"download task fault,threadIndex:{threadIndex},error:{e}");
                     }
                 });
                 tasks[index] = task;
@@ -805,6 +812,7 @@ namespace Neo.Services.ApiServices
                     byte[] buffer = new byte[Convert.ToInt32(onefileLength)];
                     readTempStream.Read(buffer, 0, Convert.ToInt32(onefileLength));
                     writestream.Write(buffer, 0, Convert.ToInt32(onefileLength));
+                    readTempStream.Dispose();
                 }
                 writestream.Flush();
                 writestream.Close();

@@ -1096,7 +1096,7 @@ const UploadDownloadTaskList = ({ data, func1, func2 }) => {
                         <Col span={1}>
                         </Col>
                         <Col span={4}>
-                            <Button size="small" hidden={item.flag != -1} onClick={() => { item.tasktype == 1 ? func1(item.taskId, item.containerId, item.filePath, item.timeStamp) : func2(item.taskId, item.containerId, item.objectId, item.fileName, item.timeStamp) }}>{"Again"}</Button>
+                            <Button size="small" hidden={item.flag != -1} onClick={() => { item.tasktype == 1 ? func1(item.taskId, item.containerId, item.filePath, item.timeStamp) : func2(item.taskId, item.containerId, item.objectId, item.filePath, item.timeStamp) }}>{"Again"}</Button>
                         </Col>
                     </Row>
                     <Progress showInfo percent={(1.0 * item.current / item.total * 100).toFixed(2)} status={item.flag == 0 ? "active" : item.flag == 1 ? "success" : "exception"} style={{ width: '90%' }} />
