@@ -38,6 +38,9 @@
     <None Update="Plugins\LevelDBStore.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Plugins\LevelDBStore\LevelDBStore.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 
