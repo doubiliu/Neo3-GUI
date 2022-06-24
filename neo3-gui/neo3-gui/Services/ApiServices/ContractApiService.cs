@@ -95,7 +95,7 @@ namespace Neo.Services.ApiServices
             // Read manifest
             ContractManifest manifest = ReadManifestFile(manifestPath);
             // Basic script checks
-            await CheckBadOpcode(nefFile.Script);
+            await CheckBadOpcode(nefFile.Script.ToArray());
 
             // Build script
             using ScriptBuilder sb = new ScriptBuilder();
@@ -168,7 +168,7 @@ namespace Neo.Services.ApiServices
             // Read manifest
             ContractManifest manifest = ReadManifestFile(manifestPath);
             // Basic script checks
-            await CheckBadOpcode(nefFile.Script);
+            await CheckBadOpcode(nefFile.Script.ToArray());
 
             // Build script
             using ScriptBuilder sb = new ScriptBuilder();
@@ -239,7 +239,7 @@ namespace Neo.Services.ApiServices
             }
             catch (Exception e)
             {
-                return Error(ErrorCode.InvalidPara);
+                return Error(ErrorCode.InvalidPara, e.GetExMessage());
             }
 
             var signers = new List<Signer>();
@@ -261,11 +261,11 @@ namespace Neo.Services.ApiServices
             var result = new InvokeResultModel();
             result.VmState = engine.State;
             result.GasConsumed = new BigDecimal((BigInteger)engine.GasConsumed, NativeContract.GAS.Decimals);
-            result.ResultStack = engine.ResultStack.Select(p => JStackItem.FromJson(p.ToContractParameter().ToJson())).ToList();
+            result.ResultStack = engine.ResultStack.Select(p => JStackItem.FromJson(p.ToJObject())).ToList();
             result.Notifications = engine.Notifications?.Select(ConvertToEventModel).ToList();
             if (engine.State.HasFlag(VMState.FAULT))
             {
-                return Error(ErrorCode.EngineFault);
+                return Error(ErrorCode.EngineFault, engine.FaultException?.ToString());
             }
             if (!para.SendTx)
             {
@@ -310,7 +310,7 @@ namespace Neo.Services.ApiServices
             if (eventMeta?.Parameters.Any() == true)
             {
                 var json = new Dictionary<string, object>();
-                for (var i = 0; i < eventMeta.Parameters.Length; i++)
+                for (var i = 0; i < eventMeta.Parameters.Length && i < notify.State.Count; i++)
                 {
                     var p = eventMeta.Parameters[i];
                     json[p.Name] = ConvertValue(notify.State[i], p.Type);
@@ -456,7 +456,8 @@ namespace Neo.Services.ApiServices
         {
             var snapshot = Helpers.GetDefaultSnapshot();
             var validators = NativeContract.NEO.GetCommittee(snapshot);
-            var candidates = NativeContract.NEO.GetCandidates(snapshot);
+            //var candidates = NativeContract.NEO.GetCandidates(snapshot);
+            var candidates = snapshot.GetCandidates();
             return candidates.OrderByDescending(v => v.Votes).Select(p => new ValidatorModel
             {
                 Publickey = p.PublicKey.ToString(),
@@ -464,6 +465,7 @@ namespace Neo.Services.ApiServices
                 Active = validators.Contains(p.PublicKey)
             }).ToArray();
         }
+
 
 
 
@@ -493,7 +495,8 @@ namespace Neo.Services.ApiServices
                 return Error(ErrorCode.InvalidPara);
             }
             var snapshot = Helpers.GetDefaultSnapshot();
-            var candidates = NativeContract.NEO.GetCandidates(snapshot);
+            //var candidates = NativeContract.NEO.GetCandidates(snapshot);
+            var candidates = snapshot.GetCandidates();
             if (candidates.Any(v => v.PublicKey.Equals(publicKey)))
             {
                 return Error(ErrorCode.ValidatorAlreadyExist);
@@ -573,7 +576,7 @@ namespace Neo.Services.ApiServices
             {
                 throw new WsException(ErrorCode.ExceedMaxTransactionSize);
             }
-            using var stream = new BinaryReader(File.OpenRead(nefPath), Encoding.UTF8, false);
+            var stream = new MemoryReader(File.ReadAllBytes(nefPath));
             try
             {
                 return stream.ReadSerializable<NefFile>();

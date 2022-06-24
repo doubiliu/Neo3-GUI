@@ -45,6 +45,8 @@ using Boolean = Neo.VM.Types.Boolean;
 using Buffer = Neo.VM.Types.Buffer;
 using VmArray = Neo.VM.Types.Array;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Pointer = Neo.VM.Types.Pointer;
+using Neo.SmartContract.Iterators;
 
 namespace Neo
 {
@@ -54,7 +56,7 @@ namespace Neo
         public static readonly JsonSerializerOptions SerializeOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            IgnoreNullValues = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNameCaseInsensitive = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             Converters =
@@ -388,6 +390,26 @@ namespace Neo
             return JsonSerializer.SerializeToUtf8Bytes(obj, SerializeOptions);
         }
 
+
+        /// <summary>
+        /// serialize to utf8 json bytes, more performance than to json string
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static byte[] SerializeJsonBytesSafely<T>(this T obj)
+        {
+            try
+            {
+                return SerializeJsonBytes(obj);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
+
         /// <summary>
         /// serialize to utf8 json string
         /// </summary>
@@ -607,7 +629,7 @@ namespace Neo
         {
             if (account.Contract != null)
             {
-                if (account.Contract.Script.IsMultiSigContract(out _, out int _))
+                if (account.Contract.Script.IsMultiSigContract())
                 {
                     return AccountType.MultiSignature;
                 }
@@ -1158,6 +1180,12 @@ namespace Neo
             return notification;
         }
 
+        public static ApplicationEngine RunTestMode(this ReadOnlyMemory<byte> script, DataCache snapshot, IVerifiable container = null)
+        {
+            return ApplicationEngine.Run(script, snapshot ?? GetDefaultSnapshot(), container, settings: CliSettings.Default.Protocol, gas: Constant.TestMode);
+        }
+
+
         public static ApplicationEngine RunTestMode(this byte[] script, DataCache snapshot, IVerifiable container = null)
         {
             return ApplicationEngine.Run(script, snapshot ?? GetDefaultSnapshot(), container, settings: CliSettings.Default.Protocol, gas: Constant.TestMode);
@@ -1281,91 +1309,59 @@ namespace Neo
             return msg;
         }
 
-        /// <summary>
-        /// Converts the <see cref="StackItem"/> to a <see cref="ContractParameter"/>.
-        /// </summary>
-        /// <param name="item">The <see cref="StackItem"/> to convert.</param>
-        /// <returns>The converted <see cref="ContractParameter"/>.</returns>
-        public static ContractParameter ToContractParameter(this StackItem item, List<(StackItem, ContractParameter)> context = null)
-        {
-            if (item is null) throw new ArgumentNullException(nameof(item));
 
-            ContractParameter parameter = null;
+        /// <summary>
+        /// Convert StackItem to JObject
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public static JObject ToJObject(this StackItem item)
+        {
+            return ToJson(item, null);
+        }
+
+
+        private static JObject ToJson(StackItem item, HashSet<StackItem> context)
+        {
+            JObject json = new();
+            json["type"] = item.Type;
             switch (item)
             {
                 case VmArray array:
-                    if (context is null)
-                        context = new List<(StackItem, ContractParameter)>();
-                    else
-                        (_, parameter) = context.FirstOrDefault(p => ReferenceEquals(p.Item1, item));
-                    if (parameter is null)
-                    {
-                        parameter = new ContractParameter { Type = ContractParameterType.Array };
-                        context.Add((item, parameter));
-                        parameter.Value = array.Select(p => ToContractParameter(p, context)).ToList();
-                    }
+                    context ??= new HashSet<StackItem>(ReferenceEqualityComparer.Instance);
+                    if (!context.Add(array)) throw new InvalidOperationException();
+                    json["value"] = new JArray(array.Select(p => ToJson(p, context)));
+                    break;
+                case Boolean boolean:
+                    json["value"] = boolean.GetBoolean();
+                    break;
+                case Buffer buffer:
+                    json["value"] = buffer.InnerBuffer.ToBase64String();
+                    break;
+                case ByteString _:
+                    json["value"] = item.GetSpan().ToBase64String();
+                    break;
+                case Integer integer:
+                    json["value"] = integer.GetInteger().ToString();
                     break;
                 case Map map:
-                    if (context is null)
-                        context = new List<(StackItem, ContractParameter)>();
-                    else
-                        (_, parameter) = context.FirstOrDefault(p => ReferenceEquals(p.Item1, item));
-                    if (parameter is null)
+                    context ??= new HashSet<StackItem>(ReferenceEqualityComparer.Instance);
+                    if (!context.Add(map)) throw new InvalidOperationException();
+                    json["value"] = new JArray(map.Select(p =>
                     {
-                        parameter = new ContractParameter { Type = ContractParameterType.Map };
-                        context.Add((item, parameter));
-                        parameter.Value = map.Select(p =>
-                            new KeyValuePair<ContractParameter, ContractParameter>(ToContractParameter(p.Key, context),
-                                ToContractParameter(p.Value, context))).ToList();
-                    }
+                        JObject item = new();
+                        item["key"] = ToJson(p.Key, context);
+                        item["value"] = ToJson(p.Value, context);
+                        return item;
+                    }));
                     break;
-                case Boolean _:
-                    parameter = new ContractParameter
-                    {
-                        Type = ContractParameterType.Boolean,
-                        Value = item.GetBoolean()
-                    };
+                case Pointer pointer:
+                    json["value"] = pointer.Position;
                     break;
-                case ByteString array:
-                    parameter = new ContractParameter
-                    {
-                        Type = ContractParameterType.ByteArray,
-                        Value = array.GetSpan().ToArray()
-                    };
-                    break;
-                case Buffer array:
-                    parameter = new ContractParameter
-                    {
-                        Type = ContractParameterType.ByteArray,
-                        Value = array.GetSpan().ToArray()
-                    };
-                    break;
-                case Integer i:
-                    parameter = new ContractParameter
-                    {
-                        Type = ContractParameterType.Integer,
-                        Value = i.GetInteger()
-                    };
-                    break;
-                case InteropInterface _:
-                    parameter = new ContractParameter
-                    {
-                        Type = ContractParameterType.InteropInterface
-                    };
-                    break;
-                case Null _:
-                    parameter = new ContractParameter
-                    {
-                        Type = ContractParameterType.Any
-                    };
-                    break;
-                default:
-                    throw new ArgumentException($"StackItemType({item.Type}) is not supported to ContractParameter.");
             }
-            return parameter;
+            return json;
         }
 
-        
 
         /// <summary>
         /// /检查Nep Token
@@ -1422,6 +1418,62 @@ namespace Neo
                 return AssetType.Nep11;
             }
             return AssetType.None;
+        }
+
+
+
+        private static readonly ConcurrentDictionary<byte[], string> _strCache = new(ByteArrayValueComparer.Default);
+
+        public static string ToBase64String(this byte[] data)
+        {
+            return _strCache.GetOrAdd(data, Convert.ToBase64String);
+        }
+
+
+        public static string ToBase64String(this ReadOnlySpan<byte> data)
+        {
+            return data.ToArray().ToBase64String();
+        }
+
+        public static string ToBase64String(this Memory<byte> data)
+        {
+            return data.ToArray().ToBase64String();
+        }
+
+
+        public static bool IsSignatureContract(this byte[] script)
+        {
+            return Neo.SmartContract.Helper.IsSignatureContract(script);
+        }
+
+        public static bool IsMultiSigContract(this byte[] script)
+        {
+            return Neo.SmartContract.Helper.IsMultiSigContract(script);
+        }
+
+
+        public static (ECPoint PublicKey, BigInteger Votes)[] GetCandidates(this DataCache snapshot)
+        {
+            var sb = new ScriptBuilder();
+            sb.EmitDynamicCall(NativeContract.NEO.Hash, "getCandidates");
+            var engine = sb.ToArray().RunTestMode(snapshot);
+            var array = engine.ResultStack.Pop() as VmArray;
+            var list = new List<(ECPoint PublicKey, BigInteger Votes)>();
+            if (array.Count > 0)
+            {
+                foreach (Struct item in array)
+                {
+                    list.Add((ECPoint.FromBytes(item[0].GetSpan().ToArray(), ECCurve.Secp256r1), item[1].GetInteger()));
+                }
+
+            }
+            //var iterator = iop.GetInterface<IIterator>();
+            //var first = iterator.Value;
+            //while (iterator.Next())
+            //{
+            //    var val = iterator.Value;
+            //}
+            return list.ToArray();
         }
     }
 }

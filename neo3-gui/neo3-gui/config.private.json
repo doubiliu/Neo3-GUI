@@ -7,7 +7,7 @@
     },
     "Storage": {
       "Engine": "LevelDBStore",
-      "Path": "Data_LevelDB_4444"
+      "Path": "Data_LevelDB_330"
     },
     "P2P": {
       "Port": 20333,
